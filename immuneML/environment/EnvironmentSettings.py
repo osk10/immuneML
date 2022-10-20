@@ -17,6 +17,7 @@ class EnvironmentSettings:
 
     sequence_type = SequenceType.AMINO_ACID
     root_path = Path(os.path.normpath(os.path.dirname(os.path.abspath(__file__)) + "/../../") + "/")
+    plugin_path = ""
     default_params_path = root_path / "immuneML/config/default_params"
     tmp_test_path = root_path / "test/tmp"
     default_analysis_path = root_path / "analysis_runs"
@@ -80,3 +81,9 @@ class EnvironmentSettings:
             raise RuntimeError("EnvironmentSettings: the sequence alphabet cannot be obtained if sequence_type was not set properly. "
                                f"Expected AMINO_ACID or NUCLEOTIDE, but got {seq_type} instead.")
         return alphabet
+
+    @staticmethod
+    def set_plugin_path(path: str):
+        EnvironmentSettings.plugin_path = path
+
+
