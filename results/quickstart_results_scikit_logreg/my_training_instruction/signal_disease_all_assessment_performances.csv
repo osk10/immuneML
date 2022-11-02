@@ -1,0 +1,2 @@
+hp_setting,split,optimal,balanced_accuracy,recall,auc,precision
+my_kmer_frequency_my_logistic_regression,1,False,0.96875,0.9375,0.9910714285714286,1.0

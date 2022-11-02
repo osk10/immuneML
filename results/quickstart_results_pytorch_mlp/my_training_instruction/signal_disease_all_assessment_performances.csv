@@ -1,0 +1,2 @@
+hp_setting,split,optimal,auc,recall,precision,balanced_accuracy
+my_encoder_my_mlp,1,False,0.47555555555555556,0.0,0.0,0.5

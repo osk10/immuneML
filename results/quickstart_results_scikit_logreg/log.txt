@@ -1,0 +1,77 @@
+2022-11-02 14:53:52,074 INFO: Setting temporary cache path to ../../results/quickstart_results3715/cache
+2022-11-02 14:53:52,074 INFO: ImmuneML: parsing the specification...
+
+2022-11-02 14:53:52,079 INFO: --- Entering: parse_encoder with parameters ('my_kmer_frequency', {'KmerFrequency': {'k': 3}})
+2022-11-02 14:53:52,240 INFO: --- Exiting: parse_encoder
+2022-11-02 14:53:52,240 INFO: --- Entering: _parse_ml_method with parameters ('my_logistic_regression', 'LogisticRegression')
+2022-11-02 14:53:52,409 INFO: --- Exiting: _parse_ml_method
+2022-11-02 14:53:52,409 INFO: --- Entering: _parse_report with parameters ('my_coefficients', 'Coefficients', SymbolTable())
+2022-11-02 14:53:52,814 INFO: Failed to extract font properties from /System/Library/Fonts/LastResort.otf: tuple indices must be integers or slices, not str
+2022-11-02 14:53:52,826 INFO: Failed to extract font properties from /System/Library/Fonts/Supplemental/NISC18030.ttf: In FT2Font: Could not set the fontsize (invalid pixel size; error code 0x17)
+2022-11-02 14:53:52,855 INFO: Failed to extract font properties from /System/Library/Fonts/Apple Color Emoji.ttc: In FT2Font: Could not set the fontsize (invalid pixel size; error code 0x17)
+2022-11-02 14:53:52,888 INFO: --- Exiting: _parse_report
+2022-11-02 14:53:52,888 INFO: --- Entering: _parse_dataset with parameters ('my_dataset', {'format': 'AIRR', 'params': {'is_repertoire': True, 'path': '/Users/oskar/Documents/Skole/Master/immuneml_forked/quickstart_data/repertoires', 'metadata_file': '/Users/oskar/Documents/Skole/Master/immuneml_forked/quickstart_data/metadata.csv'}}, SymbolTable(), PosixPath('../../results/quickstart_results3715'))
+2022-11-02 14:54:03,313 INFO: --- Exiting: _parse_dataset
+2022-11-02 14:54:03,314 INFO: --- Entering: parse_instruction with parameters ('my_training_instruction', {'type': 'TrainMLModel', 'dataset': 'my_dataset', 'labels': ['signal_disease'], 'settings': [{'encoding': 'my_kmer_frequency', 'ml_method': 'my_logistic_regression'}], 'assessment': {'reports': {'models': ['my_coefficients']}, 'split_strategy': 'random', 'split_count': 1, 'training_percentage': 0.7}, 'selection': {'split_strategy': 'random', 'split_count': 1, 'training_percentage': 1}, 'optimization_metric': 'balanced_accuracy', 'metrics': ['auc', 'precision', 'recall'], 'number_of_processes': 4}, SymbolTable(), PosixPath('../../results/quickstart_results3715'))
+2022-11-02 14:54:03,345 INFO: LabelConfiguration: set default positive class 'True' for label signal_disease
+2022-11-02 14:54:03,352 INFO: --- Exiting: parse_instruction
+2022-11-02 14:54:03,357 INFO: Full specification is available at ../../results/quickstart_results3715/full_quickstart.yaml.
+
+2022-11-02 14:54:03,357 INFO: ImmuneML: starting the analysis...
+
+2022-11-02 14:54:03,357 INFO: Instruction 1/1 has started.
+2022-11-02 14:54:03,382 INFO: Training ML model: running outer CV loop: started split 1/1.
+
+2022-11-02 14:54:03,399 INFO: Hyperparameter optimization: running the inner loop of nested CV: selection for label signal_disease (label 1 / 1).
+
+2022-11-02 14:54:03,401 INFO: Evaluating hyperparameter setting: my_kmer_frequency_my_logistic_regression...
+2022-11-02 14:54:03,401 INFO: Encoding started...
+2022-11-02 14:54:03,402 INFO: --- Entering: _encode_new_dataset with parameters (<immuneML.encodings.kmer_frequency.KmerFreqRepertoireEncoder.KmerFreqRepertoireEncoder object at 0x7f7e11157dc0>, <immuneML.data_model.dataset.RepertoireDataset.RepertoireDataset object at 0x7f7e11157bb0>, EncoderParams(result_path=PosixPath('../../results/quickstart_results3715/my_training_instruction/split_1/selection_random/split_1/signal_disease_my_kmer_frequency_my_logistic_regression/encoded_datasets'), label_config=<immuneML.environment.LabelConfiguration.LabelConfiguration object at 0x7f7e11157040>, filename='train_dataset.pkl', pool_size=4, model={'normalization_type': 'l2', 'reads': 'unique', 'sequence_encoding': 'continuous_kmer', 'scale_to_unit_variance': True, 'scale_to_zero_mean': False, 'k': 3, 'k_left': 1, 'k_right': 1, 'max_gap': 0, 'min_gap': 0, 'sequence_type': 'amino_acid', 'name': 'my_kmer_frequency'}, learn_model=True, encode_labels=True))
+2022-11-02 14:54:03,402 INFO: --- Entering: _encode_examples with parameters (<immuneML.encodings.kmer_frequency.KmerFreqRepertoireEncoder.KmerFreqRepertoireEncoder object at 0x7f7e11157dc0>, <immuneML.data_model.dataset.RepertoireDataset.RepertoireDataset object at 0x7f7e11157bb0>, EncoderParams(result_path=PosixPath('../../results/quickstart_results3715/my_training_instruction/split_1/selection_random/split_1/signal_disease_my_kmer_frequency_my_logistic_regression/encoded_datasets'), label_config=<immuneML.environment.LabelConfiguration.LabelConfiguration object at 0x7f7e11157040>, filename='train_dataset.pkl', pool_size=4, model={'normalization_type': 'l2', 'reads': 'unique', 'sequence_encoding': 'continuous_kmer', 'scale_to_unit_variance': True, 'scale_to_zero_mean': False, 'k': 3, 'k_left': 1, 'k_right': 1, 'max_gap': 0, 'min_gap': 0, 'sequence_type': 'amino_acid', 'name': 'my_kmer_frequency'}, learn_model=True, encode_labels=True))
+2022-11-02 14:54:11,599 INFO: --- Exiting: _encode_examples
+2022-11-02 14:54:13,177 INFO: --- Exiting: _encode_new_dataset
+2022-11-02 14:54:13,284 INFO: Encoding finished.
+2022-11-02 14:54:13,284 INFO: ML model training started...
+2022-11-02 14:54:15,115 WARNING: The max_iter was reached which means the coef_ did not converge
+2022-11-02 14:54:15,428 INFO: ML model training finished.
+2022-11-02 14:54:15,428 INFO: Completed hyperparameter setting my_kmer_frequency_my_logistic_regression.
+
+2022-11-02 14:54:15,428 INFO: Hyperparameter optimization: running the inner loop of nested CV: completed selection for label signal_disease (label 1 / 1).
+
+2022-11-02 14:54:15,429 INFO: Training ML model: running the inner loop of nested CV: retrain models for label signal_disease (label 1 / 1).
+
+2022-11-02 14:54:15,429 INFO: Evaluating hyperparameter setting: my_kmer_frequency_my_logistic_regression...
+2022-11-02 14:54:15,429 INFO: Encoding started...
+2022-11-02 14:54:15,429 INFO: --- Entering: _encode_new_dataset with parameters (<immuneML.encodings.kmer_frequency.KmerFreqRepertoireEncoder.KmerFreqRepertoireEncoder object at 0x7f7e111bb9a0>, <immuneML.data_model.dataset.RepertoireDataset.RepertoireDataset object at 0x7f7e11157070>, EncoderParams(result_path=PosixPath('../../results/quickstart_results3715/my_training_instruction/split_1/signal_disease_my_kmer_frequency_my_logistic_regression_optimal/encoded_datasets'), label_config=<immuneML.environment.LabelConfiguration.LabelConfiguration object at 0x7f7e111d01f0>, filename='train_dataset.pkl', pool_size=4, model={'normalization_type': 'l2', 'reads': 'unique', 'sequence_encoding': 'continuous_kmer', 'scale_to_unit_variance': True, 'scale_to_zero_mean': False, 'k': 3, 'k_left': 1, 'k_right': 1, 'max_gap': 0, 'min_gap': 0, 'sequence_type': 'amino_acid', 'name': 'my_kmer_frequency'}, learn_model=True, encode_labels=True))
+2022-11-02 14:54:15,429 INFO: --- Entering: _encode_examples with parameters (<immuneML.encodings.kmer_frequency.KmerFreqRepertoireEncoder.KmerFreqRepertoireEncoder object at 0x7f7e111bb9a0>, <immuneML.data_model.dataset.RepertoireDataset.RepertoireDataset object at 0x7f7e11157070>, EncoderParams(result_path=PosixPath('../../results/quickstart_results3715/my_training_instruction/split_1/signal_disease_my_kmer_frequency_my_logistic_regression_optimal/encoded_datasets'), label_config=<immuneML.environment.LabelConfiguration.LabelConfiguration object at 0x7f7e111d01f0>, filename='train_dataset.pkl', pool_size=4, model={'normalization_type': 'l2', 'reads': 'unique', 'sequence_encoding': 'continuous_kmer', 'scale_to_unit_variance': True, 'scale_to_zero_mean': False, 'k': 3, 'k_left': 1, 'k_right': 1, 'max_gap': 0, 'min_gap': 0, 'sequence_type': 'amino_acid', 'name': 'my_kmer_frequency'}, learn_model=True, encode_labels=True))
+2022-11-02 14:54:22,286 INFO: --- Exiting: _encode_examples
+2022-11-02 14:54:23,736 INFO: --- Exiting: _encode_new_dataset
+2022-11-02 14:54:23,824 INFO: Encoding finished.
+2022-11-02 14:54:23,825 INFO: ML model training started...
+2022-11-02 14:54:25,454 WARNING: The max_iter was reached which means the coef_ did not converge
+2022-11-02 14:54:26,025 INFO: ML model training finished.
+2022-11-02 14:54:26,026 INFO: Encoding started...
+2022-11-02 14:54:26,026 INFO: --- Entering: _encode_new_dataset with parameters (<immuneML.encodings.kmer_frequency.KmerFreqRepertoireEncoder.KmerFreqRepertoireEncoder object at 0x7f7e111bb9a0>, <immuneML.data_model.dataset.RepertoireDataset.RepertoireDataset object at 0x7f7e11157610>, EncoderParams(result_path=PosixPath('../../results/quickstart_results3715/my_training_instruction/split_1/signal_disease_my_kmer_frequency_my_logistic_regression_optimal/encoded_datasets'), label_config=<immuneML.environment.LabelConfiguration.LabelConfiguration object at 0x7f7e111d01f0>, filename='test_dataset.pkl', pool_size=4, model={'normalization_type': 'l2', 'reads': 'unique', 'sequence_encoding': 'continuous_kmer', 'scale_to_unit_variance': True, 'scale_to_zero_mean': False, 'k': 3, 'k_left': 1, 'k_right': 1, 'max_gap': 0, 'min_gap': 0, 'sequence_type': 'amino_acid', 'name': 'my_kmer_frequency'}, learn_model=False, encode_labels=True))
+2022-11-02 14:54:26,027 INFO: --- Entering: _encode_examples with parameters (<immuneML.encodings.kmer_frequency.KmerFreqRepertoireEncoder.KmerFreqRepertoireEncoder object at 0x7f7e111bb9a0>, <immuneML.data_model.dataset.RepertoireDataset.RepertoireDataset object at 0x7f7e11157610>, EncoderParams(result_path=PosixPath('../../results/quickstart_results3715/my_training_instruction/split_1/signal_disease_my_kmer_frequency_my_logistic_regression_optimal/encoded_datasets'), label_config=<immuneML.environment.LabelConfiguration.LabelConfiguration object at 0x7f7e111d01f0>, filename='test_dataset.pkl', pool_size=4, model={'normalization_type': 'l2', 'reads': 'unique', 'sequence_encoding': 'continuous_kmer', 'scale_to_unit_variance': True, 'scale_to_zero_mean': False, 'k': 3, 'k_left': 1, 'k_right': 1, 'max_gap': 0, 'min_gap': 0, 'sequence_type': 'amino_acid', 'name': 'my_kmer_frequency'}, learn_model=False, encode_labels=True))
+2022-11-02 14:54:32,088 INFO: --- Exiting: _encode_examples
+2022-11-02 14:54:32,586 INFO: --- Exiting: _encode_new_dataset
+2022-11-02 14:54:32,662 INFO: Encoding finished.
+2022-11-02 14:54:33,203 INFO: Completed hyperparameter setting my_kmer_frequency_my_logistic_regression.
+
+2022-11-02 14:54:33,203 INFO: Training ML model: running the inner loop of nested CV: completed retraining models for label signal_disease (label 1 / 1).
+
+2022-11-02 14:54:33,203 INFO: Training ML model: running outer CV loop: finished split 1/1.
+
+2022-11-02 14:54:33,533 INFO: Performances (balanced_accuracy) -----------------------------------------------
+2022-11-02 14:54:33,533 INFO: 
+
+Label: signal_disease
+2022-11-02 14:54:33,533 INFO: Performance (balanced_accuracy) per assessment split:
+2022-11-02 14:54:33,533 INFO: Split 1: 0.96875
+2022-11-02 14:54:33,533 INFO: Average performance (balanced_accuracy): 0.96875
+2022-11-02 14:54:33,533 INFO: ------------------------------
+2022-11-02 14:54:33,535 INFO: Instruction 1/1 has finished.
+2022-11-02 14:54:33,541 INFO: Generating HTML reports...
+2022-11-02 14:54:33,565 INFO: HTML reports are generated.
+2022-11-02 14:54:33,571 INFO: ImmuneML: finished analysis.
+

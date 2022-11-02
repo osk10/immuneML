@@ -1,0 +1,79 @@
+definitions:
+  datasets:
+    my_dataset:
+      format: AIRR
+      params:
+        column_mapping:
+          duplicate_count: counts
+          j_call: j_alleles
+          junction: sequences
+          junction_aa: sequence_aas
+          locus: chains
+          sequence_id: sequence_identifiers
+          v_call: v_alleles
+        import_empty_aa_sequences: false
+        import_empty_nt_sequences: true
+        import_illegal_characters: false
+        import_out_of_frame: false
+        import_productive: true
+        import_with_stop_codon: false
+        is_repertoire: true
+        metadata_file: /Users/oskar/Documents/Skole/Master/immuneml_forked/quickstart_data/metadata.csv
+        paired: false
+        path: /Users/oskar/Documents/Skole/Master/immuneml_forked/quickstart_data/repertoires
+        region_type: IMGT_CDR3
+        result_path: ../../results/quickstart_results_pytorch_mlp/datasets/my_dataset
+        separator: "\t"
+  encodings:
+    my_encoder:
+      KmerFrequency:
+        k: 3
+  ml_methods:
+    my_mlp:
+      MLP: {}
+      model_selection_cv: false
+      model_selection_n_folds: -1
+  motifs: {}
+  preprocessing_sequences: {}
+  reports:
+    my_coefficients:
+      Coefficients:
+        coefs_to_plot:
+        - n_largest
+        n_largest:
+        - 25
+        name: my_coefficients
+  signals: {}
+  simulations: {}
+instructions:
+  my_training_instruction:
+    assessment:
+      reports:
+        models:
+        - my_coefficients
+      split_count: 1
+      split_strategy: random
+      training_percentage: 0.7
+    dataset: my_dataset
+    labels:
+    - signal_disease
+    metrics:
+    - auc
+    - precision
+    - recall
+    number_of_processes: 4
+    optimization_metric: balanced_accuracy
+    refit_optimal_model: false
+    reports: []
+    selection:
+      split_count: 1
+      split_strategy: random
+      training_percentage: 1
+    settings:
+    - encoding: my_encoder
+      ml_method: my_mlp
+      preprocessing: null
+    strategy: GridSearch
+    type: TrainMLModel
+output:
+  format: HTML

@@ -1,0 +1,2 @@
+signal_disease_auc,signal_disease_balanced_accuracy,signal_disease_precision,signal_disease_recall,split_index
+0.47555555555555556,0.5,0.0,0.0,0

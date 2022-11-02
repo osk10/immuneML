@@ -1,0 +1,3 @@
+encoder: my_kmer_frequency
+ml_method: my_logistic_regression
+preprocessing: null

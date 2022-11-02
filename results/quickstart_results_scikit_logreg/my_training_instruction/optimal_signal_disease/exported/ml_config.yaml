@@ -1,0 +1,28 @@
+encoding_class: KmerFreqRepertoireEncoder
+encoding_file: encoder.pickle
+encoding_name: my_kmer_frequency
+encoding_parameters:
+  k: 3
+  k_left: 1
+  k_right: 1
+  max_gap: 0
+  min_gap: 0
+  name: my_kmer_frequency
+  normalization_type: l2
+  reads: unique
+  scale_to_unit_variance: true
+  scale_to_zero_mean: false
+  sequence_encoding: continuous_kmer
+  sequence_type: amino_acid
+labels_with_values:
+  signal_disease:
+  - false
+  - true
+ml_method: LogisticRegression
+ml_method_name: my_logistic_regression
+preprocessing_file: preprocessing_sequence.pickle
+preprocessing_parameters: {}
+preprocessing_sequence_name: null
+software_used: scikit-learn 1.1.2
+train_dataset_id: cf685f32-5ab5-11ed-bc33-5261b2b95c5d
+train_dataset_name: cf685f32-5ab5-11ed-bc33-5261b2b95c5d

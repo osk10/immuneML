@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Training ML model - CV details</title>
+    <style>
+        /**
+*** SIMPLE GRID
+*** (C) ZACH COLE 2016
+**/
+
+@import url(https://fonts.googleapis.com/css?family=Lato:400,300,300italic,400italic,700,700italic);
+
+/* UNIVERSAL */
+
+html,
+body {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  left: 0;
+  top: 0;
+  font-size: 100%;
+  font-family: 'Lato', Helvetica, sans-serif;
+  color: #333447;
+  line-height: 1.2;
+}
+
+/* TYPOGRAPHY */
+
+h1 {
+  font-size: 2.5rem;
+}
+
+h2 {
+  font-size: 2rem;
+}
+
+h3 {
+  font-size: 1.375rem;
+}
+
+h4 {
+  font-size: 1.125rem;
+}
+
+h5 {
+  font-size: 1rem;
+}
+
+h6 {
+  font-size: 0.875rem;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-weight: normal;
+}
+
+p {
+  font-size: 1.125rem;
+  font-weight: 200;
+  line-height: 1.8;
+}
+
+a {
+    color: #25537b;
+    text-decoration: none;
+    background-color: transparent;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+.center {
+  text-align: center;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.container {
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 1em;
+}
+
+/* immuneML custom */
+
+table, td, th {
+    border: 1px solid #cccccc;
+}
+
+table {
+    border-collapse: collapse;
+}
+
+td, th {
+    padding: 0.4em;
+    text-align: center;
+}
+
+img {
+    max-height: 100%;
+    max-width: 100%;
+}
+
+details {
+    margin: 0.7em 0;
+}
+
+details > summary {
+    cursor: pointer;
+}
+
+details > summary > h3 {
+    display: inline-block;
+}
+
+details > summary:focus{
+    outline: none;
+}
+
+details > table {
+    margin: 1.5em;
+}
+
+embed {
+    width: 100%;
+    min-height: 650px;
+}
+
+.grid-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-gap: 10px;
+    text-align: center;
+}
+
+.grid-item-full-width {
+    grid-column: span 2;
+}
+
+ul > li {
+    text-align: left;
+}
+
+@media screen and (max-width: 960px) {
+  .grid-container{
+    display: grid;
+    grid-template-columns: auto;
+    grid-gap: 10px;
+    text-align: center;
+  }
+}
+
+.padded {
+    padding: 1em 2em;
+}
+
+.padded-bottom{
+    padding-bottom: 1em;
+}
+
+.padded-left {
+    padding-left: 2em;
+}
+
+.padded-md {
+    padding: 0.75em 2em;
+}
+
+.padded-sm {
+    padding: 0.5em 2em;
+}
+
+.padded-xs {
+    padding: 0.25em 2em;
+}
+
+.padded-top {
+    padding-top: 1em;
+}
+
+.table-container{
+    width: 100%;
+    overflow-x: auto;
+}
+
+.table-container table thead {
+    font-weight: bold;
+}
+
+@media only screen and (max-width: 600px) {
+  .col {
+    display: block;
+    width: 100%;
+  }
+}
+
+@media print {
+    .card {
+        box-shadow: none;
+    }
+}
+
+code {
+    max-width: 100%;
+    white-space: pre-wrap;
+}
+    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+    <div class="container">
+        <h3>Assessment - split 1 details</h3>
+        <div class="padded-top padded-bottom">
+            <details>
+                <summary>Train and validation metadata (<a href="../my_training_instruction/split_1/datasets/train_metadata.csv">download link</a>)</summary>
+                <div class="table-container padded">
+                    <table>
+<thead>
+<tr>
+<td>filename</td>
+<td>subject_id</td>
+<td>signal_disease</td>
+<td>identifier</td>
+</tr>
+</thead>
+<tr>
+<td>repertoires/repertoire_94.npy</td>
+<td>94</td>
+<td>False</td>
+<td>f74898bd5de14bee90c23cd078262016</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_78.npy</td>
+<td>78</td>
+<td>False</td>
+<td>e00c0ba7dcec4478bd63f8190177b3c6</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_72.npy</td>
+<td>72</td>
+<td>False</td>
+<td>c747de5e85b54aa5969988d07e5d4866</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_16.npy</td>
+<td>16</td>
+<td>True</td>
+<td>7bfd781414a4495f9cd71a9bb85d0883</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_37.npy</td>
+<td>37</td>
+<td>True</td>
+<td>18d3f8c2317e4ef3a3fc238398c0db94</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_52.npy</td>
+<td>52</td>
+<td>False</td>
+<td>8337b61dc40c45d584d2cfc34830e43e</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_73.npy</td>
+<td>73</td>
+<td>False</td>
+<td>21466b823d584d4685e0265cca017362</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_58.npy</td>
+<td>58</td>
+<td>False</td>
+<td>cacf68b523ab4aa691de513e79052532</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_54.npy</td>
+<td>54</td>
+<td>False</td>
+<td>b67608a2ffad47cdb03b96da41fb36fb</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_90.npy</td>
+<td>90</td>
+<td>False</td>
+<td>40e7cadf4bc54069981682fb1c4cc2d3</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_96.npy</td>
+<td>96</td>
+<td>False</td>
+<td>eb9aa4b0ad374fc3842673e376b0fef6</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_81.npy</td>
+<td>81</td>
+<td>False</td>
+<td>2c456a72aeaa4df2b6a13ebeaa2b9a73</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_3.npy</td>
+<td>3</td>
+<td>True</td>
+<td>ea1a5dbc3fec4ada99e3ae5d37848d2b</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_46.npy</td>
+<td>46</td>
+<td>True</td>
+<td>3267a807aae941dc9caa55532568d6a9</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_23.npy</td>
+<td>23</td>
+<td>True</td>
+<td>a637f1077ca942f6b4183ee14e71ea5e</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_25.npy</td>
+<td>25</td>
+<td>True</td>
+<td>4fddf1c502344bb2a68f8595819d32dd</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_53.npy</td>
+<td>53</td>
+<td>False</td>
+<td>771cde80cb5d4b4d8a4847de8bf921fe</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_100.npy</td>
+<td>100</td>
+<td>False</td>
+<td>76387984d46e42018280610063237923</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_11.npy</td>
+<td>11</td>
+<td>True</td>
+<td>81557482068a4463b0ebe9659ac3b737</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_19.npy</td>
+<td>19</td>
+<td>True</td>
+<td>c28e8ea036c24ddf8ec1351452856a98</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_55.npy</td>
+<td>55</td>
+<td>False</td>
+<td>a1cc61352cd34c75bfe5b1de96eac70f</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_42.npy</td>
+<td>42</td>
+<td>True</td>
+<td>e8e94eaf8994407d86324376f17e2efa</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_12.npy</td>
+<td>12</td>
+<td>True</td>
+<td>b54370b559864195b6071132b78edd66</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_65.npy</td>
+<td>65</td>
+<td>False</td>
+<td>42c082cbc8494cad97b1b12d4778891a</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_50.npy</td>
+<td>50</td>
+<td>True</td>
+<td>f43b0fcac8bb4ee988c05049aaac00e2</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_24.npy</td>
+<td>24</td>
+<td>True</td>
+<td>f55f880800674ea9985f0ac8bf72559f</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_74.npy</td>
+<td>74</td>
+<td>False</td>
+<td>0711bd5a46224d328489cfe2f875068d</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_99.npy</td>
+<td>99</td>
+<td>False</td>
+<td>5a1e8ca63a9245eea3ab6828c91a7350</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_97.npy</td>
+<td>97</td>
+<td>False</td>
+<td>390e94e570104b1489630499d17d2047</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_59.npy</td>
+<td>59</td>
+<td>False</td>
+<td>1ff446712fc44104ac13834da76a622a</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_84.npy</td>
+<td>84</td>
+<td>False</td>
+<td>db9ed252605a40bd9b9f55a1aadee960</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_40.npy</td>
+<td>40</td>
+<td>True</td>
+<td>7402ffedbc494c3896cb9c2496733ff4</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_36.npy</td>
+<td>36</td>
+<td>True</td>
+<td>a001c0b1e46c4501a4a9f99c332da460</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_67.npy</td>
+<td>67</td>
+<td>False</td>
+<td>de4f88d88cbd41a7b0163919c3956ce6</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_92.npy</td>
+<td>92</td>
+<td>False</td>
+<td>b66be5644e544664af86df2b4a3f85f7</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_4.npy</td>
+<td>4</td>
+<td>True</td>
+<td>2acf3a18ab164c2295d9969726089f47</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_21.npy</td>
+<td>21</td>
+<td>True</td>
+<td>cee9c331201a4722b76750d46739b37a</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_5.npy</td>
+<td>5</td>
+<td>True</td>
+<td>697bfb2f64454d2889abc6fe24058853</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_76.npy</td>
+<td>76</td>
+<td>False</td>
+<td>d9d206701603474d9a8dc5d0a79b5e9e</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_41.npy</td>
+<td>41</td>
+<td>True</td>
+<td>f06a15185dc14441bdba760237ea4a3b</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_44.npy</td>
+<td>44</td>
+<td>True</td>
+<td>e1b41e78fa1945aa87d9deb23add4efd</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_43.npy</td>
+<td>43</td>
+<td>True</td>
+<td>070629400eae417bb87ede7381a6c318</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_18.npy</td>
+<td>18</td>
+<td>True</td>
+<td>15667553e5e04e41aecd70f341980435</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_83.npy</td>
+<td>83</td>
+<td>False</td>
+<td>bf307cd5c41f41f69d60e2984f238242</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_1.npy</td>
+<td>1</td>
+<td>True</td>
+<td>ca49f9637a62404eaa95c3b8d35a0355</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_87.npy</td>
+<td>87</td>
+<td>False</td>
+<td>85b16c82634b48c8a6d3aa841a311bfe</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_82.npy</td>
+<td>82</td>
+<td>False</td>
+<td>4278b9c302c24dfab76ff7dad228a7ab</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_33.npy</td>
+<td>33</td>
+<td>True</td>
+<td>2e9de4c563c14a2ebc5685df2212ec9b</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_2.npy</td>
+<td>2</td>
+<td>True</td>
+<td>58bbedff41ba4e32ae77b361a085640a</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_91.npy</td>
+<td>91</td>
+<td>False</td>
+<td>85b71e426c6546f1b2bfda63cda2b40d</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_63.npy</td>
+<td>63</td>
+<td>False</td>
+<td>41d20196666a4280bb9f2c2ac2c60a7d</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_86.npy</td>
+<td>86</td>
+<td>False</td>
+<td>249423d4c0004863b27af62e807d0b2b</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_8.npy</td>
+<td>8</td>
+<td>True</td>
+<td>a044f7b9eb184e1bb14816dc64dc2cd3</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_32.npy</td>
+<td>32</td>
+<td>True</td>
+<td>30a804c6d0a0427c942559a9f4bccfdb</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_22.npy</td>
+<td>22</td>
+<td>True</td>
+<td>af333be96933457aa0c2af8ef9bc9d20</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_10.npy</td>
+<td>10</td>
+<td>True</td>
+<td>21e0ae9af540407495e472d49429c002</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_48.npy</td>
+<td>48</td>
+<td>True</td>
+<td>7de3ba63e39c4d5fbcb1eba806d42c36</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_49.npy</td>
+<td>49</td>
+<td>True</td>
+<td>ac5c36a262874fcf89d12b79b024da00</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_69.npy</td>
+<td>69</td>
+<td>False</td>
+<td>8839e237873d401882b9b89149e9d4a4</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_51.npy</td>
+<td>51</td>
+<td>False</td>
+<td>bf8aa2a859aa4f6ca974c10286df7839</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_98.npy</td>
+<td>98</td>
+<td>False</td>
+<td>b0c573906c714156af08d92dc178e602</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_26.npy</td>
+<td>26</td>
+<td>True</td>
+<td>3419cad112e0483a9c6f656ff87b32f2</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_17.npy</td>
+<td>17</td>
+<td>True</td>
+<td>c53d8ce2cdc44a0783615945319e50bd</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_35.npy</td>
+<td>35</td>
+<td>True</td>
+<td>ce1d96c3ad244304a950f11a3f632a22</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_29.npy</td>
+<td>29</td>
+<td>True</td>
+<td>e58fea9af2614d0693a8d339c9e8709b</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_85.npy</td>
+<td>85</td>
+<td>False</td>
+<td>dafc8a19875f4318b207ff283df3b0f9</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_61.npy</td>
+<td>61</td>
+<td>False</td>
+<td>b935f3fbf8534bc1aeed089022101674</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_70.npy</td>
+<td>70</td>
+<td>False</td>
+<td>0d41a31e2c4847bc9e522b9e62f24145</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_95.npy</td>
+<td>95</td>
+<td>False</td>
+<td>ad207520699746b0a483ce626efa2f1c</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_66.npy</td>
+<td>66</td>
+<td>False</td>
+<td>e640f732c61b4caca10c4c1d9b9b6a3f</td>
+</tr>
+</table>
+
+                </div>
+            </details>
+            <details>
+                <summary>Test metadata (<a href="../my_training_instruction/split_1/datasets/test_metadata.csv">download link</a>)</summary>
+                <div class="table-container padded">
+                    <table>
+<thead>
+<tr>
+<td>filename</td>
+<td>subject_id</td>
+<td>signal_disease</td>
+<td>identifier</td>
+</tr>
+</thead>
+<tr>
+<td>repertoires/repertoire_80.npy</td>
+<td>80</td>
+<td>False</td>
+<td>1d4f6993153941c4bd69ffcd55975ced</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_75.npy</td>
+<td>75</td>
+<td>False</td>
+<td>485f3a3c4749482ea0e69b2825868e72</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_30.npy</td>
+<td>30</td>
+<td>True</td>
+<td>e825b040feb94c02aee9f2f18affc050</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_56.npy</td>
+<td>56</td>
+<td>False</td>
+<td>a3c5f573815443048487a5750f2095cd</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_79.npy</td>
+<td>79</td>
+<td>False</td>
+<td>da0b0348220f4b84808a7221dee0c6f8</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_64.npy</td>
+<td>64</td>
+<td>False</td>
+<td>af902a998b034026b009a80288378a8c</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_88.npy</td>
+<td>88</td>
+<td>False</td>
+<td>545bfe7092cb43e3837cf307037f21c7</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_13.npy</td>
+<td>13</td>
+<td>True</td>
+<td>43095ce8f659452c8a057be28431b25d</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_77.npy</td>
+<td>77</td>
+<td>False</td>
+<td>47690a92b9204d8a97ece9433a782415</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_62.npy</td>
+<td>62</td>
+<td>False</td>
+<td>c035692054ec4c9987b2f98df3fe9e8e</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_7.npy</td>
+<td>7</td>
+<td>True</td>
+<td>a6f7c3adefd7494da61e2108d983d52a</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_39.npy</td>
+<td>39</td>
+<td>True</td>
+<td>28b6a82a6db94dcf8eca41de2cd4aca1</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_31.npy</td>
+<td>31</td>
+<td>True</td>
+<td>cea9becbefac4278b7ebdb72da0aeddd</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_71.npy</td>
+<td>71</td>
+<td>False</td>
+<td>f7bc370b92c7472d8737d51b192fff32</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_14.npy</td>
+<td>14</td>
+<td>True</td>
+<td>97e6947d06784219a5eff9c366edde4a</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_47.npy</td>
+<td>47</td>
+<td>True</td>
+<td>c89a017ce3f3430c87bb0ae0e163e7e7</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_68.npy</td>
+<td>68</td>
+<td>False</td>
+<td>b55a9b9f6ebb4a1e82317ab584c268a8</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_34.npy</td>
+<td>34</td>
+<td>True</td>
+<td>ea51a65e7c9749e7a13d5f0d63e8457d</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_20.npy</td>
+<td>20</td>
+<td>True</td>
+<td>c8132f58bca04337b12c4ab51e56328f</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_27.npy</td>
+<td>27</td>
+<td>True</td>
+<td>965dc944ffc248d69efadcc856b72960</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_28.npy</td>
+<td>28</td>
+<td>True</td>
+<td>d04b01f04c8f4a7fa0a6e40b469067e4</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_89.npy</td>
+<td>89</td>
+<td>False</td>
+<td>23b8875bf07b48f792b5bb14b7fab027</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_38.npy</td>
+<td>38</td>
+<td>True</td>
+<td>003420ca6918428aaadce48984abdd49</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_57.npy</td>
+<td>57</td>
+<td>False</td>
+<td>6deefad241c94820b0860168faebf24f</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_6.npy</td>
+<td>6</td>
+<td>True</td>
+<td>004d776bd9a5437586371a244876fce4</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_45.npy</td>
+<td>45</td>
+<td>True</td>
+<td>ad3da04125ad406eb2e4e61aa6d1e382</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_15.npy</td>
+<td>15</td>
+<td>True</td>
+<td>84b0d9cc18d14c828f1d1db75d7522e3</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_93.npy</td>
+<td>93</td>
+<td>False</td>
+<td>78968a13d791423d8ac251c653743e71</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_60.npy</td>
+<td>60</td>
+<td>False</td>
+<td>ff45fecb725f45f9a40141543b7168a9</td>
+</tr>
+<tr>
+<td>repertoires/repertoire_9.npy</td>
+<td>9</td>
+<td>True</td>
+<td>bb77f864588c4736ac30a3f704622c47</td>
+</tr>
+</table>
+
+                </div>
+            </details>
+        </div>
+        <h4>Label signal_disease</h4>
+        <p>
+            In the table below, the performance of the optimal hyperparameter setting on the test set for this split is shown, as measured by the
+            optimization metric used for model selection and model assessment. This hyperparameter setting was chosen to be the optimal one in the
+            inner cross-validation (i.e., during the selection) for this assessment split.
+        </p>
+        <div class="padded">
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Optimal hyperparameter settings <br>(preprocessing, encoding, ML method)</th>
+                            <th>Performance (balanced_accuracy)</th>
+                            <th>Reports</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <b>
+                                my_kmer_frequency_my_logistic_regression
+                                </b>
+                            </td>
+                            <td>
+                                <b>0.969</b></td>
+                            <td><a href="my_training_instruction_signal_disease_my_kmer_frequency_my_logistic_regression_assessment_reports_split_1.html">see reports</a></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <p>The performance of different hyperparameter settings on all listed performance metrics
+            is shown in the table below. This is the performance on the test set for this assessment split when all
+            models have been retrained on training and validation dataset (the same as the previous table).</p>
+        <div class="table-container padded">
+            <table>
+<thead>
+<tr>
+<td>Hyperparameter settings (preprocessing, encoding, ML method)</td>
+<td>balanced_accuracy</td>
+<td>recall</td>
+<td>auc</td>
+<td>precision</td>
+</tr>
+</thead>
+<tr>
+<td>my_kmer_frequency_my_logistic_regression</td>
+<td>0.969</td>
+<td>0.938</td>
+<td>0.991</td>
+<td>1.0</td>
+</tr>
+</table>
+
+        </div>
+        <p class="padded-bottom">
+            For the performance of each of the settings during the inner loop of cross-validation (used to select the optimal model for the split),
+            see <a href="my_training_instruction_selection_details_signal_disease_split_1.html">selection details</a>.
+        </p>
+    </div>
+</body>
+</html>
