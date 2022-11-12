@@ -132,7 +132,6 @@ class AtchleyKmerMILClassifier(MLMethod):
 
                 # compute the loss
                 loss = loss_func(logits, torch.tensor(mapped_y).float())
-                print(loss)
 
                 # perform update
                 loss.backward()

@@ -1,10 +1,8 @@
 import copy
-import logging
 import random
 from pathlib import Path
 
 import numpy as np
-import pandas as pd
 import torch
 import yaml
 
@@ -14,7 +12,6 @@ from immuneML.ml_methods.MLMethod import MLMethod
 from immuneML.ml_methods.pytorch_implementations.PyTorchMLP import PyTorchMLP
 from immuneML.ml_methods.util.Util import Util
 from immuneML.util.PathBuilder import PathBuilder
-from scipy import sparse
 
 
 class MLP(MLMethod):
@@ -46,7 +43,7 @@ class MLP(MLMethod):
         # Clear model for training
         self.mlp = None
 
-        # --- Initialization ---
+        # --- Initialization ---,
         random.seed(self.random_seed)
         random_seed = random.randint(1, 100000)
 
@@ -102,7 +99,6 @@ class MLP(MLMethod):
 
         # just for testing and debugging
         #pred = self.predict(encoded_data, label)
-        print("fit finished")
 
     def predict(self, encoded_data: EncodedData, label: Label):
         predictions_proba = self.predict_proba(encoded_data, label)
