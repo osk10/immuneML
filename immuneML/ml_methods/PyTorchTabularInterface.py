@@ -1,3 +1,4 @@
+import abc
 from pathlib import Path
 
 import numpy as np
@@ -18,14 +19,13 @@ import torch
 import math
 
 
-class PyTorchTabular(MLMethod):
+class PyTorchTabularInterface(MLMethod):
 
-    def __init__(self, result_path: Path = None):
-        super().__init__()
+    def __init__(self):
+        super(PyTorchTabularInterface, self).__init__()
         self.feature_names = None
         self.class_mapping = None
         self.label = None
-        self.result_path = result_path
         self.input_size = 0
         self.model = None
 
@@ -35,14 +35,6 @@ class PyTorchTabular(MLMethod):
         self.feature_names = encoded_data.feature_names
 
         numpy_array = encoded_data.examples.toarray()
-
-        """
-        print(torch.backends.mps.is_available())
-        print(torch.backends.mps.is_built())
-        print(torch.cuda.device_count())
-        torch.cuda.is_available()
-        torch.device("mps")
-        """
 
         # Map from True/False to 1/0
         mapped_y = Util.map_to_new_class_values(encoded_data.labels[self.label.name], self.class_mapping)
@@ -55,11 +47,7 @@ class PyTorchTabular(MLMethod):
 
         # create dataframe with data and column names
         data = pd.DataFrame(data, columns=col_names)
-        """
-        test_idx = data.sample(int(0.2 * len(data)), random_state=42).index
-        test = data[data.index.isin(test_idx)]
-        train = data[~data.index.isin(test_idx)]
-        """
+
         num_col_names = col_names
         cat_col_names = []
         target_col_name = ['target']
@@ -70,21 +58,9 @@ class PyTorchTabular(MLMethod):
             categorical_cols=cat_col_names,
         )
 
-        trainer_config = TrainerConfig(
-            auto_lr_find=False,  # Runs the LRFinder to automatically derive a learning rate
-            batch_size=32,
-            max_epochs=100,
-            gpus=None,  # index of the GPU to use. None means CPU
-        )
+        trainer_config, model_config = self._get_config()
 
         optimizer_config = OptimizerConfig()
-
-        model_config = CategoryEmbeddingModelConfig(
-            task="classification",
-            layers="4096-4096-512",  # Number of nodes in each layer
-            activation="LeakyReLU",  # Activation between each layers
-            learning_rate=1e-3
-        )
 
         tabular_model = TabularModel(
             data_config=data_config,
@@ -94,17 +70,6 @@ class PyTorchTabular(MLMethod):
         )
         tabular_model.fit(train=data)
         self.model = tabular_model
-
-        """
-        result = tabular_model.evaluate(test)
-
-        pred_df = tabular_model.predict(data)
-        
-        print(pred_df.head())
-        print(pred_df["prediction"])
-
-        print(result)
-        """
 
     def predict(self, encoded_data: EncodedData, label: Label):
         predictions_proba = self.predict_proba(encoded_data, label)
@@ -135,6 +100,10 @@ class PyTorchTabular(MLMethod):
         return self.label.values
 
     def get_params(self):
+        pass
+
+    @abc.abstractmethod
+    def _get_config(self):
         pass
 
     def predict_proba(self, encoded_data: EncodedData, label: Label):

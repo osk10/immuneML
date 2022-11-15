@@ -3,7 +3,6 @@ from sklearn.linear_model import LogisticRegression as SklearnLogisticRegression
 from immuneML.ml_methods.SklearnMethod import SklearnMethod
 from scripts.specification_util import update_docs_per_mapping
 
-
 class LogisticRegression(SklearnMethod):
     """
     This is a wrapper of scikit-learn’s LogisticRegression class. Please see the

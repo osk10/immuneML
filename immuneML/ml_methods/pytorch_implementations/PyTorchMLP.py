@@ -5,7 +5,7 @@ class PyTorchMLP(torch.nn.Module):
     def __init__(self, in_features: int):
         super().__init__()
         self.layer = torch.nn.Sequential(
-            torch.nn.Linear(in_features, 1, bias=True),
+            torch.nn.Linear(in_features, 1),
             torch.nn.Sigmoid()
         )
 

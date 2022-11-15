@@ -42,3 +42,6 @@ tmp/
 
 # MacOS
 .DS_Store
+
+results/
+immuneML/app/saved_models/
