@@ -25,6 +25,7 @@ class MLParser:
     @log
     def _parse_ml_method(ml_method_id: str, ml_specification) -> tuple:
 
+        # Gets all the valid names for ml method classes in the directory ml_methods/
         valid_class_values = ReflectionHandler.all_nonabstract_subclass_basic_names(MLMethod, "", "ml_methods/")
 
         if type(ml_specification) is str:
@@ -43,7 +44,14 @@ class MLParser:
                                                 f"{str([key for key in non_default_keys])[1:-1]}."
 
         ml_method_class_name = non_default_keys[0]
-        ml_method_class = ReflectionHandler.get_class_by_name(ml_method_class_name, "ml_methods/")
+
+        ##############
+        # Old way of finding method class - finds ml_methods inside the immuneML/ml_methods instead of finding it in
+        # package folder ml_method_class = ReflectionHandler.get_class_by_name(ml_method_class_name, "ml_methods/")
+        ##############
+
+        # New way of finding machine learning methods inside package folders
+        ml_method_class = ReflectionHandler.get_class_from_package(ml_method_class_name, "ml_methods/")
 
         ml_specification[ml_method_class_name] = {**DefaultParamsLoader.load("ml_methods/", ml_method_class_name, log_if_missing=False),
                                                   **ml_specification[ml_method_class_name]}

@@ -6,6 +6,27 @@ from immuneML.environment.EnvironmentSettings import EnvironmentSettings
 
 class ReflectionHandler:
 
+
+    @staticmethod
+    def get_class_from_package(class_name: str, subdirectory: str = ""):
+
+        # Use the pattern for
+        pattern = f"extendedPackages/ml_methods/*{class_name}.py"
+        filenames = list(EnvironmentSettings.root_path.glob(pattern))
+
+        print(f"Filenames: {filenames}")
+
+        assert len(filenames) == 1, f"ReflectionHandler could not find class named {class_name}. Check spelling and try again."
+
+        path = filenames[0]
+
+        # Import class section
+        module_path = ".".join(path.parts[len(list(path.parts)) - list(path.parts)[::-1].index("extendedPackages") - 1:])[:-3]
+        mod = import_module(module_path)
+        cls = getattr(mod, class_name)
+        return cls
+
+
     @staticmethod
     def import_function(function: str, module):
         return getattr(module, function)
