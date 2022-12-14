@@ -10,6 +10,9 @@ from immuneML.environment import Label
 from immuneML.ml_methods.util.Util import Util
 from immuneML.util.PathBuilder import PathBuilder
 
+import copy
+import yaml
+import numpy as np
 import tensorflow as tf
 import keras
 from keras import layers
@@ -28,7 +31,7 @@ class TensorFlowMLP(MLMethod):
         self.mlp = None
         self.random_seed = None
         self.model = None
-        self.epochs = 100 # testing
+        self.epochs = 10 # testing
 
 
 
@@ -44,12 +47,22 @@ class TensorFlowMLP(MLMethod):
         self.model = keras.models.Sequential()
 
         # We have to define the input (which is 70 values), and we define 10 as the amount of neurons in the layer
-        self.model.add(Dense(10, input_shape=(70,), activation="sigmoid"))
+        print("Mapped y shape: ", mapped_y.shape) # -> (70,)
+        print("Encoded data example ", encoded_data.examples.shape[1]) # -> (70, x), we want the x
+
+        # Add the input layer
+        self.model.add(tf.keras.Input(shape=(encoded_data.examples.shape[1],)))
+
+        # Add a dense layer (10 neurons?)
+        self.model.add(Dense(10, activation="sigmoid"))
 
         # Compile the model with default optimizer (sgd = stochastic gradient descent)
         self.model.compile(optimizer='sgd', loss='mse', metrics=['accuracy'])
 
-        self.model.fit(mapped_y, epochs=self.epochs)
+        # Run fit method
+        self.model.fit(encoded_data.examples, mapped_y, epochs=self.epochs)
+
+        self.mlp = self.model
 
 
     def predict(self, encoded_data: EncodedData, label: Label):
@@ -63,9 +76,25 @@ class TensorFlowMLP(MLMethod):
 
     def store(self, path: Path, feature_names: list = None, details_path: Path = None):
         PathBuilder.build(path)
+        self.model.save(str(path / "mlp.keras"))
+        custom_vars = copy.deepcopy(vars(self))
+
+        del custom_vars["result_path"]
+        del custom_vars["mlp"]
+        del custom_vars["label"]
+
+        if self.label:
+            custom_vars["label"] = vars(self.label)
+
+        params_path = path / "custom_params.yaml"
+        with params_path.open('w') as file:
+            yaml.dump(custom_vars, file)
+
+
 
     def load(self, path: Path):
-        pass
+        self.mlp = keras.models.load_model(str(path / "mlp.keras"))
+
 
     def check_if_exists(self, path: Path) -> bool:
         return self.mlp is not None
@@ -78,8 +107,11 @@ class TensorFlowMLP(MLMethod):
 
     def predict_proba(self, encoded_data: EncodedData, label: Label):
         if self.can_predict_proba():
-            predictions = {label.name: self.model.predict_proba(encoded_data.examples)}
-            return predictions
+
+            predictions = self.model.predict(encoded_data.examples)
+
+            #return predictions
+            return {label.name: np.vstack([1 - np.array(predictions), predictions]).T}
         else:
             return None
 
