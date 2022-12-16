@@ -51,7 +51,7 @@ class TensorFlowMLP(MLMethod):
         print("Encoded data example ", encoded_data.examples.shape[1]) # -> (70, x), we want the x
 
         # Add the input layer
-        self.model.add(tf.keras.Input(shape=(encoded_data.examples.shape[1],)))
+        self.model.add(tf.keras.Input(shape=(encoded_data.examples.shape[1],))) # shape[1] to get the last element of tuple
 
         # Add a dense layer (10 neurons?)
         self.model.add(Dense(10, activation="sigmoid"))
@@ -62,7 +62,6 @@ class TensorFlowMLP(MLMethod):
         # Run fit method
         self.model.fit(encoded_data.examples, mapped_y, epochs=self.epochs)
 
-        self.mlp = self.model
 
 
     def predict(self, encoded_data: EncodedData, label: Label):
@@ -77,8 +76,11 @@ class TensorFlowMLP(MLMethod):
     def store(self, path: Path, feature_names: list = None, details_path: Path = None):
         PathBuilder.build(path)
         self.model.save(str(path / "mlp.keras"))
-        custom_vars = copy.deepcopy(vars(self))
+        #custom_vars = copy.deepcopy(vars(self))
 
+        # should also store feature names
+
+        """
         del custom_vars["result_path"]
         del custom_vars["mlp"]
         del custom_vars["label"]
@@ -88,13 +90,12 @@ class TensorFlowMLP(MLMethod):
 
         params_path = path / "custom_params.yaml"
         with params_path.open('w') as file:
+            # Takes a python object and produces a YAML document
             yaml.dump(custom_vars, file)
-
-
+        """
 
     def load(self, path: Path):
         self.mlp = keras.models.load_model(str(path / "mlp.keras"))
-
 
     def check_if_exists(self, path: Path) -> bool:
         return self.mlp is not None
