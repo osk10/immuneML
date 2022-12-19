@@ -47,17 +47,20 @@ class TensorFlowMLP(MLMethod):
         self.model = keras.models.Sequential()
 
         # We have to define the input (which is 70 values), and we define 10 as the amount of neurons in the layer
-        print("Mapped y shape: ", mapped_y.shape) # -> (70,)
-        print("Encoded data example ", encoded_data.examples.shape[1]) # -> (70, x), we want the x
+        # print("Mapped y shape: ", mapped_y.shape) # -> (70,)
+        # print("Encoded data example ", encoded_data.examples.shape[1]) # -> (70, x), we want the x
 
         # Add the input layer
-        self.model.add(tf.keras.Input(shape=(encoded_data.examples.shape[1],))) # shape[1] to get the last element of tuple
+        self.model.add(tf.keras.Input(shape=(encoded_data.examples.shape[1],))) # shape[1] for last element of tuple
 
-        # Add a dense layer (10 neurons?)
-        self.model.add(Dense(10, activation="sigmoid"))
+        # Add a dense layer with 70 inputs
+        self.model.add(Dense(70, input_shape=(70,), activation='relu'))
+
+        # Add last layer with 1 output for binary classification, sigmoid to give result 0 <= x <= 1
+        self.model.add(Dense(1, activation="sigmoid"))
 
         # Compile the model with default optimizer (sgd = stochastic gradient descent)
-        self.model.compile(optimizer='sgd', loss='mse', metrics=['accuracy'])
+        self.model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
 
         # Run fit method
         self.model.fit(encoded_data.examples, mapped_y, epochs=self.epochs)
@@ -76,23 +79,7 @@ class TensorFlowMLP(MLMethod):
     def store(self, path: Path, feature_names: list = None, details_path: Path = None):
         PathBuilder.build(path)
         self.model.save(str(path / "mlp.keras"))
-        #custom_vars = copy.deepcopy(vars(self))
 
-        # should also store feature names
-
-        """
-        del custom_vars["result_path"]
-        del custom_vars["mlp"]
-        del custom_vars["label"]
-
-        if self.label:
-            custom_vars["label"] = vars(self.label)
-
-        params_path = path / "custom_params.yaml"
-        with params_path.open('w') as file:
-            # Takes a python object and produces a YAML document
-            yaml.dump(custom_vars, file)
-        """
 
     def load(self, path: Path):
         self.mlp = keras.models.load_model(str(path / "mlp.keras"))
@@ -109,10 +96,17 @@ class TensorFlowMLP(MLMethod):
     def predict_proba(self, encoded_data: EncodedData, label: Label):
         if self.can_predict_proba():
 
+            # get predictions
             predictions = self.model.predict(encoded_data.examples)
 
+            # flatten the np array of predictions
+            flat_preds = predictions.flatten()
+
+            # set up the predictions in the correct format [[false, true], [false, true], ...]
+            preds = np.vstack((1 - np.array(flat_preds), flat_preds)).T
+
             #return predictions
-            return {label.name: np.vstack([1 - np.array(predictions), predictions]).T}
+            return {label.name: preds}
         else:
             return None
 
