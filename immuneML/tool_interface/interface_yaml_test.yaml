@@ -1,0 +1,6 @@
+tools:
+  ml_tool:
+    tool_path: "/Users/jorgenskimmeland/Documents/aar5/Master/ToolTest"
+
+  encoding_tool:
+    tool_path: ""
