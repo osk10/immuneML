@@ -1,6 +1,6 @@
 tools:
   ml_tool:
     tool_path: "/Users/jorgenskimmeland/Documents/aar5/Master/ToolTest"
-
+    tool_execution_file: "ToolTest.py"
   encoding_tool:
     tool_path: ""

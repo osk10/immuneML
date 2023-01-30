@@ -17,10 +17,10 @@ class ToolParser:
         print(f"execute_tool ml_specs={ml_specs}")
         tool_path = None
 
-        if "tool_path" in ml_specs:
+        if "tool_path" and "tool_execution_file" in ml_specs:
             tool_path = ml_specs.get("tool_path")
             print(f"tool_path: {tool_path}")
-            InterfaceController.interface_controller(ToolType.ML_TOOL)
+            InterfaceController.interface_controller(ToolType.ML_TOOL, ml_specs)
         else:
             raise KeyError("tool_path must be specified in yaml file specification")
 
