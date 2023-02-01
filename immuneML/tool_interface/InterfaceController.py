@@ -1,7 +1,10 @@
+import json
+
 from immuneML.tool_interface.ToolType import ToolType
 from immuneML.tool_interface.InterfaceObject import InterfaceObject
 from pathlib import Path
 import subprocess
+
 
 class InterfaceController:
 
@@ -25,21 +28,24 @@ class InterfaceController:
 
         try:
             file = ml_specs.get("tool_path") + "/" + ml_specs.get("tool_execution_file")
-            result = subprocess.run(["python", file], capture_output=True)
+            # result = subprocess.run(["python", file], capture_output=True)
+
+            json_data_example = InterfaceController._create_JSON_data()
+            proc = subprocess.Popen(["python", file, json_data_example], stdout=subprocess.PIPE, stdin=subprocess.PIPE)
+            result, err = proc.communicate()
+
             print(f"Result from running subprocess: {result}")
         except PermissionError as e:
-            print(e)
-            print("Make sure to give right permissions to file")
+            print(f"{e}\n Make sure to give necessary permission")
             return
 
     @staticmethod
-    def _create_JSON_file():
+    def _create_JSON_data():
         # the point of this method is to generate a JSON file that contains information that other tools should be
         # able to understand and base their instructions on
-        # that means that an external tool must be able to understand a specific JSON structure and imlpement that
+        # that means that an external tool must be able to understand a specific JSON structure and implement that
         # to be able to call the right functions?
 
-        interfaceObject = InterfaceObject("main")
-        jsonObject = interfaceObject.toJson()
-        print(jsonObject)
-
+        interface_object = InterfaceObject("main")
+        json_object = interface_object.getJson()
+        return json_object
