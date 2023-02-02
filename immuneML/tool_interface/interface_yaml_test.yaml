@@ -1,6 +1,6 @@
 tools:
   ml_tool:
-    tool_path: "/Users/jorgenskimmeland/Documents/aar5/Master/ToolTest"
+    tool_path: "/Users/jorgenskimmeland/PycharmProjects/immuneML/immuneML/tool_interface/tool_examples"
     tool_execution_file: "ToolTest.py"
   encoding_tool:
     tool_path: ""
