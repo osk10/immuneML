@@ -1,3 +1,4 @@
+import os
 import time
 import socket
 from multiprocessing.connection import Listener
@@ -36,7 +37,9 @@ class InterfaceController:
         #  Define and run subprocess (external tool)
         file = ml_specs.get("tool_path") + "/" + ml_specs.get("tool_execution_file")
         json_data_example = InterfaceController._create_JSON_data()
-        proc = subprocess.Popen(["python", file, json_data_example], stdout=subprocess.PIPE, stdin=subprocess.PIPE)
+        proc = subprocess.Popen(["python", file, json_data_example],
+                                stdout=subprocess.PIPE,
+                                stdin=subprocess.PIPE)
 
         #  Listen for connections. Only listen to one client (tool) at a time
         #  Can be increased if we need multiple tools to run at the same time
@@ -53,6 +56,11 @@ class InterfaceController:
 
         conn.send('Closing connection'.encode())
         conn.close()
+
+        #  Printing the output that the tool gives while running on its own side
+        output_list = proc.communicate()[0].decode('UTF-8')
+        print("\n--------Summary of tool output--------")
+        print(output_list)
 
     @staticmethod
     def _create_JSON_data():
