@@ -9,7 +9,7 @@ class ToolParser:
         specs = workflow_specification["tools"]
 
         if "ml_tool" in specs:
-            ml_specs  = specs.get("ml_tool")
+            ml_specs = specs.get("ml_tool")
             ToolParser.execute_tool(ml_specs)
 
     @staticmethod

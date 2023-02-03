@@ -20,14 +20,15 @@ class ToolTest:
             print("could not connect")
             return
         else:
-            print("Successfully connected")
+            print(f"Successfully established connecting to immuneML through port: {port}")
 
         for i in range(0, 5):
             packet_data = f'Data packet {i}'
+            print(f"Tool sending packet: {packet_data}")
             client_socket.send(packet_data.encode())
             time.sleep(1)
 
-        client_socket.send('stop connection'.encode())
+        client_socket.send('EXIT CONNECTION'.encode())
         client_socket.close()
 
     @staticmethod

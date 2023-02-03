@@ -21,80 +21,38 @@ class InterfaceController:
     @staticmethod
     def _ml_tool_caller(ml_specs: dict):
         print("ml_tool_caller: looking for ml_method")
-        InterfaceController._start_multiprocess(ml_specs)
+        InterfaceController._start_subprocess(ml_specs)
 
     @staticmethod
-    def _start_multiprocess(ml_specs: dict):
+    def _start_subprocess(ml_specs: dict):
+        #  Specify socket information
         server_socket = socket.socket()
         host = socket.gethostname()
         port = 6000
 
-        #  print("Before binding")
-
+        #  Bind host and porth number
         server_socket.bind((host, port))
 
-        #  print("Starting sleep")
-        #  time.sleep(5)
-
+        #  Define and run subprocess (external tool)
         file = ml_specs.get("tool_path") + "/" + ml_specs.get("tool_execution_file")
         json_data_example = InterfaceController._create_JSON_data()
         proc = subprocess.Popen(["python", file, json_data_example], stdout=subprocess.PIPE, stdin=subprocess.PIPE)
 
+        #  Listen for connections. Only listen to one client (tool) at a time
+        #  Can be increased if we need multiple tools to run at the same time
         #  Tried to do this before starting subprocess, but this created a deadlock
-        server_socket.listen(1)  # only listen to one client simultaneously
+        server_socket.listen(1)
         conn, address = server_socket.accept()
 
+        #  Handle data from connected client (tool)
         while True:
             data = conn.recv(1024).decode()
             print(f"Data received from client: {data}")
-            if data == 'stop connection':
+            if data == 'EXIT CONNECTION':
                 break
 
         conn.send('Closing connection'.encode())
         conn.close()
-
-    @staticmethod
-    def _start_multiprocess2(ml_specs: dict):
-        listener = Listener(('localhost', 6000), authkey=b'123')
-        connection = listener.accept()
-
-        file = ml_specs.get("tool_path") + "/" + ml_specs.get("tool_execution_file")
-        json_data_example = InterfaceController._create_JSON_data()
-
-        time.sleep(10)
-        # Start subprocess running the tool
-        proc = subprocess.Popen(["python", file, json_data_example], stdout=subprocess.PIPE, stdin=subprocess.PIPE)
-
-        connection_is_open = True
-        while connection_is_open:
-            msg = connection.recv()
-            print(msg)
-            if msg == "close server":
-                connection.close()
-                break
-        listener.close()
-
-    @staticmethod
-    def _define_subprocess():
-        pass
-
-    @staticmethod
-    def _start_subprocess(ml_specs: dict):
-        tool_path = Path(ml_specs.get("tool_path"))
-        print(f"_start_subprocess tool path: {tool_path}")
-
-        try:
-            file = ml_specs.get("tool_path") + "/" + ml_specs.get("tool_execution_file")
-            # result = subprocess.run(["python", file], capture_output=True)
-
-            json_data_example = InterfaceController._create_JSON_data()
-            proc = subprocess.Popen(["python", file, json_data_example], stdout=subprocess.PIPE, stdin=subprocess.PIPE)
-            result, err = proc.communicate()
-
-            print(f"Result from running subprocess: {result}")
-        except PermissionError as e:
-            print(f"{e}\n Make sure to give necessary permission")
-            return
 
     @staticmethod
     def _create_JSON_data():
