@@ -7,12 +7,11 @@ class ToolTest:
 
     @staticmethod
     def main(json_data):
+        ToolTest._input_data_interpreter(json_data)
+
         host = socket.gethostname()
         port = 6000
-
         client_socket = socket.socket()
-
-        attempts = 10
 
         try:
             client_socket.connect((host, port))
@@ -32,8 +31,8 @@ class ToolTest:
         client_socket.close()
 
     @staticmethod
-    def testing_func():
-        pass
+    def _input_data_interpreter(input_data: str):
+        print(f"Calling input_data_interpreter with input data: {input_data}")
 
     """
     The tool should implement functions that must take a certain parameter 
