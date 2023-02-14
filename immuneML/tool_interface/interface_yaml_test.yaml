@@ -1,6 +1,7 @@
 tools:
   ml_tool:
-    tool_path: "/Users/jorgenskimmeland/PycharmProjects/immuneML/immuneML/tool_interface/tool_examples"
-    tool_execution_file: "ToolTest.py"
-  encoding_tool:
     tool_path: ""
+    tool_executable: ""
+  dataset_tool:
+    tool_path: "/Users/jorgenskimmeland/PycharmProjects/immuneML/immuneML/tool_interface/tool_examples"
+    tool_executable: "main"

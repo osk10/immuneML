@@ -1,5 +1,6 @@
 from immuneML.tool_interface.ToolType import ToolType
 from immuneML.tool_interface.InterfaceObject import InterfaceObject
+from immuneML.tool_interface.InterfaceDatasetTool import InterfaceDatasetTool
 import subprocess
 
 
@@ -9,9 +10,13 @@ class InterfaceController:
     def interface_controller(tool_type: ToolType, ml_specs: dict):
         print(f"interface_controller specs received: {ml_specs}")
         if tool_type == ToolType.ML_TOOL:
-            InterfaceController._ml_tool_caller(ml_specs)
+            print("Found ML_TOOL, but skipping program execution")
+            # InterfaceController._ml_tool_caller(ml_specs)
+        elif tool_type == ToolType.DATASET_TOOL:
+            print("Found DATASET_TOOL. Running interface")
+            InterfaceDatasetTool.instruction_handler(ml_specs)
         else:
-            print(f"Invalid argument: {tool_type}")
+            print(f"Invalid argument: {tool_type}. No such tool exists")
 
     @staticmethod
     def _ml_tool_caller(ml_specs: dict):
@@ -21,9 +26,10 @@ class InterfaceController:
     @staticmethod
     def _start_subprocess(ml_specs: dict):
         #  Define and run subprocess (external tool)
-        file = ml_specs.get("tool_path") + "/" + ml_specs.get("tool_execution_file")
+
+        program = ml_specs.get("tool_path") + "/" + ml_specs.get("tool_execution_file")
         json_data_example = InterfaceController._create_JSON_data()
-        proc = subprocess.Popen(["python", file, json_data_example],
+        proc = subprocess.Popen([program],
                                 stdout=subprocess.PIPE,
                                 stdin=subprocess.PIPE)
 
