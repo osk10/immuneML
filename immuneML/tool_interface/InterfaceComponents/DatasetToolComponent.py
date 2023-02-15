@@ -1,12 +1,13 @@
 import subprocess
 
-class InterfaceDatasetTool:
+
+class DatasetToolComponent:
 
     @staticmethod
     def instruction_handler(ml_specs: dict):
         print("------- ----- ---- Broski you are now trying to run an external dataset tool")
 
-        InterfaceDatasetTool.start_sub_process(ml_specs)
+        DatasetToolComponent.start_sub_process(ml_specs)
 
     @staticmethod
     def start_sub_process(ml_specs: dict):

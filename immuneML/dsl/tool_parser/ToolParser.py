@@ -4,9 +4,26 @@ from immuneML.tool_interface.ToolType import ToolType
 
 class ToolParser:
 
+    valid_tool_definitions = {
+        "ml_tool": [
+            "tool_path",
+            "tool_executable"
+        ],
+        "dataset_tool": [
+            "tool_path",
+            "tool_executable"
+        ]
+    }
+
     @staticmethod
     def parse(workflow_specification: dict):
-        specs = workflow_specification["tools"]
+        # First thing that should be done is to check if the parser gets valid data
+
+        if not ToolParser.check_if_valid_tool_definition(workflow_specification):
+            print(f"Invalid YAML file. Requirements: {ToolParser.valid_tool_definitions}")
+            return
+        else:
+            specs = workflow_specification["tools"]
 
         print(f"\nToolparser got specs: {specs}\n")
 
@@ -18,7 +35,12 @@ class ToolParser:
             dataset_specs = specs.get("dataset_tool")
             ToolParser.execute_tool(dataset_specs, ToolType.DATASET_TOOL)
         else:
-            print("No tool found while parsing tool(s)")
+            print("Invalid yaml specification file?")
+
+    @staticmethod
+    def check_if_valid_tool_definition(workflow_specification: dict):
+        # TODO: implement function
+        return True
 
     @staticmethod
     def execute_tool(specs: dict, tool_type: ToolType):

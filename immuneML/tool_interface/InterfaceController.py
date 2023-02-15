@@ -1,27 +1,21 @@
 from immuneML.tool_interface.ToolType import ToolType
 from immuneML.tool_interface.InterfaceObject import InterfaceObject
-from immuneML.tool_interface.InterfaceDatasetTool import InterfaceDatasetTool
+from immuneML.tool_interface.InterfaceComponents.DatasetToolComponent import DatasetToolComponent
+from immuneML.tool_interface.InterfaceComponents.MLToolComponent import MLToolComponent
 import subprocess
 
 
 class InterfaceController:
 
     @staticmethod
-    def interface_controller(tool_type: ToolType, ml_specs: dict):
-        print(f"interface_controller specs received: {ml_specs}")
+    def interface_controller(tool_type: ToolType, specs: dict):
+        print(f"interface_controller specs received: {specs}")
         if tool_type == ToolType.ML_TOOL:
-            print("Found ML_TOOL, but skipping program execution")
-            # InterfaceController._ml_tool_caller(ml_specs)
+            MLToolComponent.instruction_handler(specs)
         elif tool_type == ToolType.DATASET_TOOL:
-            print("Found DATASET_TOOL. Running interface")
-            InterfaceDatasetTool.instruction_handler(ml_specs)
+            DatasetToolComponent.instruction_handler(specs)
         else:
             print(f"Invalid argument: {tool_type}. No such tool exists")
-
-    @staticmethod
-    def _ml_tool_caller(ml_specs: dict):
-        print("ml_tool_caller: looking for ml_method")
-        InterfaceController._start_subprocess(ml_specs)
 
     @staticmethod
     def _start_subprocess(ml_specs: dict):
