@@ -1,8 +1,10 @@
 import subprocess
 import json
 
+from immuneML.tool_interface.InterfaceComponents.InterfaceComponent import InterfaceComponent
 
-class DatasetToolComponent:
+
+class DatasetToolComponent(InterfaceComponent):
 
     @staticmethod
     def instruction_handler(ml_specs: dict):
