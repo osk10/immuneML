@@ -31,14 +31,3 @@ class InterfaceController:
         output_list = proc.communicate()[0].decode('UTF-8')
         print("\n--------Summary of tool output--------")
         print(output_list)
-
-    @staticmethod
-    def _create_JSON_data():
-        # the point of this method is to generate a JSON file that contains information that other tools should be
-        # able to understand and base their instructions on
-        # that means that an external tool must be able to understand a specific JSON structure and implement that
-        # to be able to call the right functions?
-
-        interface_object = InterfaceObject("main")
-        json_object = interface_object.getJson()
-        return json_object
