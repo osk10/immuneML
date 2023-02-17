@@ -1,4 +1,5 @@
 import subprocess
+import json
 
 
 class DatasetToolComponent:
@@ -6,8 +7,41 @@ class DatasetToolComponent:
     @staticmethod
     def instruction_handler(ml_specs: dict):
         print("------- ----- ---- Broski you are now trying to run an external dataset tool")
+        # The sub_process should return a JSON string
+        result: str = DatasetToolComponent.start_sub_process(ml_specs)
+        DatasetToolComponent.handle_response_data(result)
 
-        DatasetToolComponent.start_sub_process(ml_specs)
+    @staticmethod
+    def handle_response_data(json_response: str):
+        # Handles response from tool
+        # For instance in the context of a dataset tool that would be a path and file name?
+        """
+        {
+          path: "",
+          file: ""
+        }
+        """
+        path, file, response_object = None, None, None
+        try:
+            response_object = json.loads(json_response)
+        except json.decoder.JSONDecodeError as e:
+            print(f"Error: {e.msg}")
+
+        try:
+            path = response_object["path"]
+            file = response_object["dataset_file"]
+        except KeyError as e:
+            print(e)
+            return None
+
+        print(f"Found path: {path} and file: {file}")
+
+    @staticmethod
+    def fetch_dataset(path: str, file: str):
+        # Fetch the data from path and filename
+        # Search through path file?
+        # Or use default path?
+        print("Fetching dataset?")
 
     @staticmethod
     def start_sub_process(ml_specs: dict):
@@ -22,8 +56,7 @@ class DatasetToolComponent:
                                 shell=True)
 
         stdout, stderr = proc.communicate()
-        print("\n--------Summary of tool output--------")
-        print(stdout.decode())
+        return stdout.decode()
 
     @staticmethod
     def create_dataset_result():
