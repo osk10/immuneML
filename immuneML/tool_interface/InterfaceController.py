@@ -1,8 +1,6 @@
 from immuneML.tool_interface.ToolType import ToolType
-from immuneML.tool_interface.InterfaceObject import InterfaceObject
 from immuneML.tool_interface.InterfaceComponents.DatasetToolComponent import DatasetToolComponent
 from immuneML.tool_interface.InterfaceComponents.MLToolComponent import MLToolComponent
-import subprocess
 
 
 class InterfaceController:
@@ -16,18 +14,3 @@ class InterfaceController:
             DatasetToolComponent.instruction_handler(specs)
         else:
             print(f"Invalid argument: {tool_type}. No such tool exists")
-
-    @staticmethod
-    def _start_subprocess(ml_specs: dict):
-        #  Define and run subprocess (external tool)
-
-        program = ml_specs.get("tool_path") + "/" + ml_specs.get("tool_execution_file")
-        json_data_example = InterfaceController._create_JSON_data()
-        proc = subprocess.Popen([program],
-                                stdout=subprocess.PIPE,
-                                stdin=subprocess.PIPE)
-
-        #  Printing the output that the tool gives while running on its own side
-        output_list = proc.communicate()[0].decode('UTF-8')
-        print("\n--------Summary of tool output--------")
-        print(output_list)
