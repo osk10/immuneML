@@ -1,18 +1,27 @@
 import subprocess
 import json
+import time
+import sys
+import os
 from pathlib import Path
 from immuneML.tool_interface.InterfaceComponents.InterfaceComponent import InterfaceComponent
 
 
 class DatasetToolComponent(InterfaceComponent):
+    # Set the path of where the datasets should be stored and fetched from
+    parent_directory = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
+    DEFAULT_DATASET_FOLDER_PATH = os.path.join(parent_directory, "generated_datasets")
+
 
     @staticmethod
     def instruction_handler(ml_specs: dict):
-        print("Running DatasetToolComponent")
+        print("\n------- Running DatasetToolComponent-------\n")
         # The sub_process should return a JSON string
         result = DatasetToolComponent.start_sub_process(ml_specs)
         print(f"Result shown in instruction_handler: ({type(result)}) --> {result}")
-        DatasetToolComponent.handle_response_data(result)
+        # DatasetToolComponent.handle_response_data(result)
+
+        print(f"Path to dataset folder: {DatasetToolComponent.DEFAULT_DATASET_FOLDER_PATH}")
 
     @staticmethod
     def handle_response_data(json_response):
@@ -48,8 +57,7 @@ class DatasetToolComponent(InterfaceComponent):
     def start_sub_process(ml_specs: dict, debug_process=False):
         print("Starting subprocess")
 
-        json_data_example = DatasetToolComponent.produce_JSON_object(path="test",
-                                                                     dataset_file="test")
+        json_data_example = DatasetToolComponent.produce_JSON_object(dataset_folder=DatasetToolComponent.DEFAULT_DATASET_FOLDER_PATH)
         program = ml_specs.get("tool_path") + "/" + ml_specs.get("tool_executable")
 
         # Define the command to run the subprocess program
@@ -59,8 +67,15 @@ class DatasetToolComponent(InterfaceComponent):
         process = subprocess.Popen(command,
                                    stdout=subprocess.PIPE,
                                    stderr=subprocess.PIPE)
-        output, error = process.communicate()
 
-        print(f"Process output: {output}")
+        print("Waiting for subprocess to finish: ")
+        # animation used for user feedback to avoid it seeming like the subprocess has frozen
+        InterfaceComponent.subprocess_animation(process)
+
+        output, error = process.communicate()
+        print(f"\nProcess output: {output}")
+
+        # This should only be printed under success
+        print(f"Dataset is now available in path: {DatasetToolComponent.DEFAULT_DATASET_FOLDER_PATH}")
         return output
 

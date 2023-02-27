@@ -3,5 +3,5 @@ tools:
     tool_path: ""
     tool_executable: ""
   dataset_tool:
-    tool_path: "/Users/jorgenskimmeland/Documents/aar5/Master/ToolTest"
-    tool_executable: "main"
+    tool_path: "/Users/jorgenskimmeland/Documents/aar5/Master/Absolut/Absolut-main/immuneML_interface"
+    tool_executable: "interface_executable"
