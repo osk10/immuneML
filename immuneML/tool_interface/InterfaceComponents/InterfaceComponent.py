@@ -52,3 +52,20 @@ class InterfaceComponent(ABC):
         # Clear the output
         sys.stdout.flush()
         sys.stdout.write("\rSubprocess finished")
+
+    @staticmethod
+    def show_process_output(ml_specs: dict):
+        # Checks for the parameter "show_process_output"
+        # If this parameter is not defined in YAML file, output will not be shown, but rather a process status
+        print("TESTING show_process_output function")
+        show_output = False
+        value = ml_specs.get("show_process_output")
+        if value is not None:
+            if value == "True":
+                show_output = True
+            elif value != "False":
+                print("show_process_output must have parameter 'True' or 'False")
+        else:
+            print("Not showing process output. If you want too see process output, insert show_process_output: 'True' "
+                  "into YAML specification file")
+        return show_output

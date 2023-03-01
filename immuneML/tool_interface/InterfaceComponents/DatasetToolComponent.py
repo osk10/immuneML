@@ -55,7 +55,8 @@ class DatasetToolComponent(InterfaceComponent):
     def start_sub_process(ml_specs: dict, debug_process=False):
         print("Starting subprocess")
 
-        json_data_example = DatasetToolComponent.produce_JSON_object(dataset_folder=DatasetToolComponent.DEFAULT_DATASET_FOLDER_PATH)
+        json_data_example = DatasetToolComponent.produce_JSON_object(
+            dataset_folder=DatasetToolComponent.DEFAULT_DATASET_FOLDER_PATH)
         tool_path = ml_specs.get("tool_path")
         program = tool_path + "/" + ml_specs.get("tool_executable")
 
@@ -63,30 +64,34 @@ class DatasetToolComponent(InterfaceComponent):
         command = [program, json_data_example]
 
         # Start the new Terminal window and execute the command in it
+        # Include 'cwd' to make sure to use the subprocess working directory, not inherit from main process
         process = subprocess.Popen(command,
                                    stdout=subprocess.PIPE,
                                    stderr=subprocess.PIPE,
-                                   cwd=tool_path) # Make sure to use the subprocess working directory, not inherit from main process
+                                   cwd=tool_path)
 
-        # Testing to watch the subprocess output
-        print("Checking testing output from C++ program")
-        output_bytes = process.stdout.read()
-        output_string = output_bytes.decode("UTF-8")
-        print(output_string)
-        return_code = process.wait()
+        if process.stdout:
+            if not InterfaceComponent.show_process_output(ml_specs):
+                # animation used for user feedback to avoid it seeming like the subprocess has frozen
+                print(f"-------------------- Show animation because show_process_output is False")
+                InterfaceComponent.subprocess_animation(process)
+            else:
+                output_bytes = process.stdout.read()
+                output_string = output_bytes.decode("UTF-8")
+                print(output_string)
+                return_code = process.wait()
 
-        # Because there was an error running the program, it was not sent through the stdout pipe.
-        # Always check the error
-        print(f"Error? {process.stderr.read().decode('UTF-8')}")
+        # Important to check for error returned by pipe. Error does not show in stdout
+        if process.stderr:
+            print(f"Subprocess error: {process.stderr.read().decode('UTF-8')}")
 
-        print("Waiting for subprocess to finish: ")
+        # print("Waiting for subprocess to finish: ")
         # animation used for user feedback to avoid it seeming like the subprocess has frozen
-        InterfaceComponent.subprocess_animation(process)
+        # InterfaceComponent.subprocess_animation(process)
 
         output, error = process.communicate()
-        print(f"\nProcess output: {output}")
+        # print(f"\nProcess output: {output}")
 
         # This should only be printed under success
         # print(f"Dataset is now available in path: {DatasetToolComponent.DEFAULT_DATASET_FOLDER_PATH}")
         return output
-
