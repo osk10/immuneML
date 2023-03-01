@@ -10,7 +10,13 @@ class InterfaceComponent(ABC):
     # Should contain functions that can be reused, overwritten or new functions added (?)
 
     @staticmethod
+    def start_sub_process(ml_specs: dict):
+        # Should have a standard way of starting a subprocess that can be overwritten
+        pass
+
+    @staticmethod
     def produce_JSON_object(**input_data):
+        # The communication of instructions to a subprocess should be through a JSON string message
         # **input_data = dictionary of keyword arguments
         print("Printing input sent to function produce_JSON_object")
         for key, value in input_data.items():
@@ -35,8 +41,8 @@ class InterfaceComponent(ABC):
     def subprocess_animation(process: subprocess):
         # Animation only meant for giving user feedback in terminal
         # Subprocesses can take a long time, so it's important for the user to know the program is not frozen
-        animation = "|/-\\"
         num_dots = 0
+
         while process.poll() is None:
             sys.stdout.write('\rRunning subprocess{}   '.format('.' * num_dots))
             sys.stdout.flush()
