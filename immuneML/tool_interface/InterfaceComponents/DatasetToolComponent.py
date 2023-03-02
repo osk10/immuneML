@@ -56,7 +56,16 @@ class DatasetToolComponent(InterfaceComponent):
         print("Starting subprocess")
 
         json_data_example = DatasetToolComponent.produce_JSON_object(
-            dataset_folder=DatasetToolComponent.DEFAULT_DATASET_FOLDER_PATH)
+            option="repertoire",
+            antigen="1FBI",
+            filename="miniSetCDR3-TESTING.txt",
+            threads=3
+        )
+
+        print(f"Produced json string:\n{json_data_example}")
+
+        # json_data_example2 = DatasetToolComponent.produce_JSON_object(
+        # dataset_folder=DatasetToolComponent.DEFAULT_DATASET_FOLDER_PATH)
         tool_path = ml_specs.get("tool_path")
         program = tool_path + "/" + ml_specs.get("tool_executable")
 

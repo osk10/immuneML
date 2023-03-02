@@ -18,9 +18,10 @@ class InterfaceComponent(ABC):
     def produce_JSON_object(**input_data):
         # The communication of instructions to a subprocess should be through a JSON string message
         # **input_data = dictionary of keyword arguments
-        print("Printing input sent to function produce_JSON_object")
-        for key, value in input_data.items():
-            print(f"Key: {key}, value: {value}")
+        #print("Printing input sent to function produce_JSON_object")
+        #for key, value in input_data.items():
+        #print(f"Key: {key}, value: {value}")
+        print("Producing JSON object")
 
         try:
             json_bytes = json.dumps(input_data)
@@ -57,7 +58,6 @@ class InterfaceComponent(ABC):
     def show_process_output(ml_specs: dict):
         # Checks for the parameter "show_process_output"
         # If this parameter is not defined in YAML file, output will not be shown, but rather a process status
-        print("TESTING show_process_output function")
         show_output = False
         value = ml_specs.get("show_process_output")
         if value is not None:

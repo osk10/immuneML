@@ -5,7 +5,7 @@ tools:
   dataset_tool:
     tool_path: "/Users/jorgenskimmeland/Documents/aar5/Master/Absolut/Absolut-main/src"
     tool_executable: "interface_executable"
-    show_process_output: "False"
+    show_process_output: "True"
     tool_arguments:
       option: "repertoire"
       antigen: "1FBI"
