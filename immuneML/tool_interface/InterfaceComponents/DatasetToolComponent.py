@@ -1,55 +1,37 @@
 import subprocess
-import json
-import time
-import sys
 import os
-from pathlib import Path
+import shutil
 from immuneML.tool_interface.InterfaceComponents.InterfaceComponent import InterfaceComponent
 
 
 class DatasetToolComponent(InterfaceComponent):
     # Set the path of where the datasets should be stored and fetched from
-    parent_directory = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
+    current_directory = os.path.dirname(os.path.abspath(__file__))
+    parent_directory = os.path.dirname(current_directory)
     DEFAULT_DATASET_FOLDER_PATH = os.path.join(parent_directory, "generated_datasets")
 
     @staticmethod
     def instruction_handler(ml_specs: dict):
         print("\n------- Running DatasetToolComponent-------\n")
-        # The sub_process should return a JSON string
         result = DatasetToolComponent.start_sub_process(ml_specs)
         print(f"Result shown in instruction_handler: ({type(result)}) --> {result}")
-        # DatasetToolComponent.handle_response_data(result)
         print(f"Path to dataset folder: {DatasetToolComponent.DEFAULT_DATASET_FOLDER_PATH}")
 
     @staticmethod
-    def handle_response_data(json_response):
-        # Handles response from tool
-        path, file, response_object = None, None, None
-        try:
-            response_object = json.loads(json_response)
-        except Exception as e:
-            print(f"Error: {e}")
-
-        print(f"Received data from subprocess: {response_object}")
-
-        try:
-            path = response_object["path"]
-            file = response_object["dataset_file"]
-        except KeyError as e:
-            print(e)
-            return None
-
-        print(f"Found path: {path} and file: {file}")
-        DatasetToolComponent.fetch_dataset(path, file)
+    def fetch_dataset(process_output: str) -> str:
+        process_output: list = process_output.split("\n")
+        for line in process_output:
+            if "Dataset path:" in line:
+                path = line.split(":")[1].strip()
+                return path
+        return "None"
 
     @staticmethod
-    def fetch_dataset(path: str, filename: str):
-        print(f"""Fetching dataset with information 
-            - Path:     {path}
-            - Filename: {filename}""")
+    def change_dataset_folder(dataset_path: str, target_path: str):
+        # Get the filename of the dataset from its path
+        #target_path = target_path + "/" + os.path.basename(dataset_path)
 
-        path = Path(path)
-        # TODO: continue handling the dataset?
+        shutil.move(dataset_path, target_path)
 
     @staticmethod
     def start_sub_process(ml_specs: dict, debug_process=False):
@@ -80,6 +62,7 @@ class DatasetToolComponent(InterfaceComponent):
                                    cwd=tool_path)
 
         if process.stdout:
+            output_string = ""
             if not InterfaceComponent.show_process_output(ml_specs):
                 # animation used for user feedback to avoid it seeming like the subprocess has frozen
                 print(f"-------------------- Show animation because show_process_output is False")
@@ -89,14 +72,15 @@ class DatasetToolComponent(InterfaceComponent):
                 output_string = output_bytes.decode("UTF-8")
                 print(output_string)
                 return_code = process.wait()
+                # Get the path of the dataset so we can move it to inside of immuneML
+            dataset_path = DatasetToolComponent.fetch_dataset(output_string)
+            print(f"Checking if path exists: {os.path.exists(dataset_path)}")
+            print(f"Checking if default path exists: {os.path.exists(DatasetToolComponent.DEFAULT_DATASET_FOLDER_PATH)}")
+            DatasetToolComponent.change_dataset_folder(dataset_path, DatasetToolComponent.DEFAULT_DATASET_FOLDER_PATH)
 
         # Important to check for error returned by pipe. Error does not show in stdout
         if process.stderr:
             print(f"Subprocess error: {process.stderr.read().decode('UTF-8')}")
-
-        # print("Waiting for subprocess to finish: ")
-        # animation used for user feedback to avoid it seeming like the subprocess has frozen
-        # InterfaceComponent.subprocess_animation(process)
 
         output, error = process.communicate()
         # print(f"\nProcess output: {output}")

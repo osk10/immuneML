@@ -17,10 +17,13 @@
 }*/
 
 using namespace std;
+namespace fs = std::filesystem;
+
 using json = nlohmann::json;
 
 // Struct containing the data received from immuneML
 struct InputData {
+    std::string target_directory;
     std::string option;
     std::string antigen;
     std::string filename;
@@ -51,6 +54,22 @@ InputData getJSON(std::string jsonString) {
     return inputData;
 }
 
+std::string getDatasetPath(std::string antigen) {
+    fs::path cwd = fs::current_path();
+    std::string dir_path = cwd.string();
+    std::string filenameSubstring = "FinalBindings_Process_";
+
+    // Look through the files in the directory
+    for (const auto& entry : fs::directory_iterator(dir_path)) {
+        // Check if the filename constains the substring and the antigen substring
+        if (entry.path().filename().string().find(filenameSubstring) != std::string::npos &&
+        entry.path().filename().string().find(antigen) != std::string::npos) {
+            std::string curr_path = entry.path().string();
+            return curr_path;
+        }
+    }
+    return "Could not find file and move to different directory";
+}
 
 int main(int argc, char* argv[]) {
     std::cout << "Running program" << std::endl;
@@ -85,5 +104,8 @@ int main(int argc, char* argv[]) {
     }
     pclose(pipe);
 
+    //Get the path of the dataset produced
+    std::string dataset_path = getDatasetPath(inputData.antigen);
+    std::cout << "Dataset path: " << dataset_path << std::endl;
     return 0;
 }
