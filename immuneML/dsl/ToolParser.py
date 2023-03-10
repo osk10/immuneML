@@ -32,7 +32,7 @@ class ToolParser:
                                                key)
 
         # check that the value of type is valid
-        valid_types = ["MLMethod", "dataset"]
+        valid_types = ["MLMethod", "dataset", "MLTool"]
         ParameterValidator.assert_in_valid_list(tool_item["type"], valid_types, "ToolParser", "type")
 
         # set default values and create dict with tool_item
@@ -45,6 +45,6 @@ class ToolParser:
 
         symbol_table.add(key, SymbolType.TOOL, tool_item)
 
-        #print(ToolParser.run_dataset_tool("blbla"))
+        # print(ToolParser.run_dataset_tool("blbla"))
 
         return symbol_table

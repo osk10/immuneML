@@ -5,10 +5,9 @@ from immuneML.ml_methods.MLMethod import MLMethod
 class HPSetting:
 
     def __init__(self, encoder: DatasetEncoder, encoder_params: dict,
-                 ml_method: MLMethod, ml_params: dict,
+                 ml_method: MLMethod or None, ml_params: dict,
                  preproc_sequence: list, encoder_name: str = None,
                  ml_method_name: str = None, preproc_sequence_name: str = None):
-
         self.encoder = encoder
         self.encoder_params = encoder_params
         self.ml_method = ml_method

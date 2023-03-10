@@ -1,0 +1,30 @@
+definitions:
+  datasets:
+    my_dataset: # user-defined dataset name
+      format: AIRR
+      params:
+        is_repertoire: true # we are importing a repertoire dataset
+        path: /Users/oskar/Documents/Skole/Master/immuneml_forked/quickstart_data/repertoires # path to the folder containing the repertoire .tsv files
+        metadata_file: /Users/oskar/Documents/Skole/Master/immuneml_forked/quickstart_data/metadata.csv
+
+  encodings:
+    my_kmer_frequency: # user-defined encoding name
+      KmerFrequency: # encoding type
+        k: 3 # encoding parameters
+
+instructions:
+  my_training_instruction: # user-defined instruction name
+    type: MLTool
+    dataset: my_dataset # use the same dataset name as in definitions
+    labels:
+      - signal_disease # use a label available in the metadata.csv file
+    settings: # which combinations of ML settings to run
+      - encoding: my_kmer_frequency
+        ml_method: my_logistic_regression
+output:
+  format: None
+tools:
+  my_tool:
+    path: /test
+    type: MLTool
+    name: my_logistic_regression

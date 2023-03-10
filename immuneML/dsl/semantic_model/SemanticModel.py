@@ -16,7 +16,7 @@ class SemanticModel:
 
     def run(self):
         instruction_states = self.run_instructions()
-        if self.output is not None:
+        if (self.output is not None) and (self.output['format'] != "None"):
             self.build_reports(instruction_states)
         return instruction_states
 
@@ -30,10 +30,10 @@ class SemanticModel:
     def run_instructions(self) -> list:
         instruction_states = []
         for index, instruction in enumerate(self.instructions):
-            print_log(f"Instruction {index+1}/{len(self.instructions)} has started.", include_datetime=True)
+            print_log(f"Instruction {index + 1}/{len(self.instructions)} has started.", include_datetime=True)
             result = instruction.run(result_path=self.result_path)
             instruction_states.append(result)
-            print_log(f"Instruction {index+1}/{len(self.instructions)} has finished.", include_datetime=True)
+            print_log(f"Instruction {index + 1}/{len(self.instructions)} has finished.", include_datetime=True)
         return instruction_states
 
     def make_report_builder(self):

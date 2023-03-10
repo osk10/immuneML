@@ -1,7 +1,8 @@
 import json
 import subprocess
-import zmq
+
 import numpy as np
+import zmq
 
 tool_process = None
 
@@ -101,3 +102,22 @@ class ToolControllerML:
             "signal_disease": np.vstack([1 - np.array(result_loads["predictions"]), result_loads["predictions"]]).T}
 
         return final_results
+
+    def run_entire_process(self, encoded_data, result_path, label):
+        self.socket.send_pyobj(encoded_data)
+        result = json.loads(self.socket.recv_json())
+        if result["data_received"] is True:
+            print("Tool received data")
+
+        x = {
+            'train_model': {
+                "path": result_path,
+                "label": label
+            }
+        }
+
+        self.socket.send_json(json.dumps(x))
+        final_result = self.socket.recv_json()
+        print(json.loads(final_result))
+        final_json = json.loads(json.loads(final_result))
+        return final_json
