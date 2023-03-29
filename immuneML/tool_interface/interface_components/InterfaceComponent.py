@@ -68,6 +68,10 @@ class InterfaceComponent(ABC):
 
         self.process = subprocess.Popen(subprocess_args, stdin=subprocess.PIPE, cwd=working_dir)
 
+        # Wait for process to start
+        while self.process is None:
+            pass
+
     def stop_subprocess(self):
 
         print("stopping tool process", self.process.pid)
@@ -78,13 +82,34 @@ class InterfaceComponent(ABC):
         print("tool process stopped")
 
     def open_connection(self):
-        context = zmq.Context()
-
-        #  Socket to talk to server
         print("Connecting to tool…")
-        self.socket = context.socket(zmq.REQ)
-        self.socket.connect("tcp://localhost:" + self.port)
-        print("Connected to tool")
+        attempts = 0
+        context = None
+
+        # Make sure that there is a connection with tool
+        # Can not communicate with tool before it has binded itself to its socket
+        while True:
+            if attempts > 10:
+                print(f"Could not establish connection after {attempts} attempts")  # TODO: add more details here
+                return
+            try:
+                # Try establishing a connection
+                context = zmq.Context()
+                self.socket = context.socket(zmq.REQ)
+                self.socket.connect("tcp://localhost:" + self.port)
+                self.socket.send_string("")
+                message = self.socket.recv()
+                print(f"ImmuneML received the ack back: {message.decode()}")
+                # If we reach this point we have been able to create a connection
+                break
+            except zmq.error.ZMQError:
+                # Failed to establish connection, failed as a result of socket not being binded yet
+                attempts += 1
+                self.socket.close()
+                context.term()
+            time.sleep(1)  # add a sleep to give some time for the tool to connect
+
+        print("ImmuneML received a message back and is ready to continue")
 
     def close_connection(self):
         self.socket.close()

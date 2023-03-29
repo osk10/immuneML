@@ -9,8 +9,12 @@ class DatasetToolComponent(InterfaceComponent):
         super().__init__(name, specs)
 
     def run(self):
+        # TODO: wait for confirmation from the tool
         # TODO: send request to tool with parameters
         tool_args = self.create_json_params(self.specs)
+        self.socket.send_json(tool_args)
+
+        print(f"Created params input: {tool_args}")
 
         # TODO: receive response and
         message_response = self.socket.recv()
@@ -28,7 +32,7 @@ class DatasetToolComponent(InterfaceComponent):
         """
         filename = os.path.basename(file_path)
 
-        # If filename already exists in target path, change its name based on duplicates
+        # If filename already exists in target path, change its name based on number of duplicates
         if os.path.exists(target_path):
             i = 1
             while True:

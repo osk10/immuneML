@@ -53,7 +53,7 @@ class ToolParser:
         ToolParser.create_component_instance(tool_specification, key)
 
         # TESTING
-        #InterfaceController.run_func(key, "run_dataset_tool_component")
+        InterfaceController.run_func(key, "run")
 
         symbol_table.add(key, SymbolType.TOOL, tool_specification)
 

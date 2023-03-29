@@ -27,7 +27,11 @@ def run_func(name: str, func: str, params=None):
         tool.open_connection()
 
     # Run function in tool component
-    result = getattr(tool, func)(params)
+    # TODO: this must be changed in case params exists or not
+    if not params:
+        result = getattr(tool, func)
+    else:
+        result = getattr(tool, func)(params)
 
     return result
 
