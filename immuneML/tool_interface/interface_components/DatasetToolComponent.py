@@ -9,18 +9,14 @@ class DatasetToolComponent(InterfaceComponent):
         super().__init__(name, specs)
 
     def run(self):
-        # TODO: wait for confirmation from the tool
-        # TODO: send request to tool with parameters
+        print("Running dataset tool")
+        # Connection has been established by open_connection(). Must send the parameters required
         tool_args = self.create_json_params(self.specs)
-        self.socket.send_json(tool_args)
 
-        print(f"Created params input: {tool_args}")
+        self.socket.send(tool_args.encode('utf-8'))  # Send input to tool
 
-        # TODO: receive response and
         message_response = self.socket.recv()
-        print(f"Message received from the C++ program: {message_response.decode()}")
 
-        # TODO:
         current_directory = os.path.dirname(os.path.abspath(__file__))
         parent_directory = os.path.dirname(current_directory)
         default_dataset_folder = os.path.join(parent_directory, "generated_datasets")
@@ -30,6 +26,7 @@ class DatasetToolComponent(InterfaceComponent):
     def move_file_to_dir(self, file_path: str, target_path: str):
         """ Moves a file to a target path
         """
+
         filename = os.path.basename(file_path)
 
         # If filename already exists in target path, change its name based on number of duplicates

@@ -22,9 +22,13 @@ class InterfaceComponent(ABC):
         self.set_interpreter()
 
     def set_interpreter(self):
-        """ Returns the correct interpreter for executable input. If no extension is found, it returns None and
-        assumes that no interpreter should be added to the subprocess module
+        """ Sets the interpreter necessary for running the tool
+
+        If no extension is found, it returns None and assumes that no interpreter should be added to the subprocess
+        module
         """
+
+        # Current valid interpreters
         interpreters = {
             ".py": "python",
             ".class": "java"
@@ -41,7 +45,7 @@ class InterfaceComponent(ABC):
         """ Creates a json string from tool params specified in YAML
         """
         if 'params' in specs:
-            return json.dumps(specs['params'])
+            return json.dumps(specs['params'], ensure_ascii=False)
         else:
             return ""
 
@@ -82,15 +86,19 @@ class InterfaceComponent(ABC):
         print("tool process stopped")
 
     def open_connection(self):
+        # TODO: (important info of how to connect to tool)
+        #  - We have to send an ack to make sure that we can communicate with the tool. That means that the tool has
+        #    to wait for a message from immuneML the second it starts and send an ack back to immuneML
+        #  - Once we have received an ack back, opening the connection is done and immuneML can continue with its
+        #    functionality
+
         print("Connecting to tool…")
         attempts = 0
         context = None
 
-        # Make sure that there is a connection with tool
-        # Can not communicate with tool before it has binded itself to its socket
         while True:
             if attempts > 10:
-                print(f"Could not establish connection after {attempts} attempts")  # TODO: add more details here
+                print(f"Could not establish connection to tool after {attempts} attempts")
                 return
             try:
                 # Try establishing a connection
@@ -98,8 +106,7 @@ class InterfaceComponent(ABC):
                 self.socket = context.socket(zmq.REQ)
                 self.socket.connect("tcp://localhost:" + self.port)
                 self.socket.send_string("")
-                message = self.socket.recv()
-                print(f"ImmuneML received the ack back: {message.decode()}")
+                self.socket.recv()
                 # If we reach this point we have been able to create a connection
                 break
             except zmq.error.ZMQError:
@@ -109,7 +116,7 @@ class InterfaceComponent(ABC):
                 context.term()
             time.sleep(1)  # add a sleep to give some time for the tool to connect
 
-        print("ImmuneML received a message back and is ready to continue")
+        print("Connected to tool")
 
     def close_connection(self):
         self.socket.close()
@@ -117,7 +124,7 @@ class InterfaceComponent(ABC):
         # TODO: should we use self.context.term() as well?
 
     def execution_animation(self, process: subprocess):
-        """Function creates an animation to give user feedback while process in running
+        """Function creates an animation to give user feedback while process is running
         """
 
         num_dots = 0

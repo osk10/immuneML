@@ -51,9 +51,11 @@ class ToolParser:
         #  - check that the tool is reachable on the specified path - reflection handler
         #  - check that name of tool is key in definitions (MLMethod in first version)
         ToolParser.create_component_instance(tool_specification, key)
+        print(f"Tooltable: {InterfaceController.toolTable.items}")
 
-        # TESTING
-        InterfaceController.run_func(key, "run")
+        # TESTING dataset tool, do not remove
+        # run_dataset = InterfaceController.run_func(key, "run")
+        # run_dataset()
 
         symbol_table.add(key, SymbolType.TOOL, tool_specification)
 
