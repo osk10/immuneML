@@ -39,7 +39,7 @@ class ToolParser:
                                                key)
 
         # check that the value of type is valid
-        valid_types = ["MLMethodTool", "DatasetTool"]
+        valid_types = ["MLMethodTool", "DatasetTool", "PreprocessingTool"]
         ParameterValidator.assert_in_valid_list(tool_item["type"], valid_types, "ToolParser", "type")
 
         # set default values and create dict with tool_item
@@ -85,6 +85,8 @@ class ToolParser:
             return ToolType.DATASET_TOOL
         elif type_str == "MLMethodTool":
             return ToolType.ML_TOOL
+        elif type_str == "PreprocessingTool":
+            return ToolType.PREPROCESSING_TOOL
         else:
             raise KeyError("Could not identify tool type. YAML file requires 'type' to be defined")
 
