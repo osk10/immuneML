@@ -36,7 +36,8 @@ class InterfaceComponent(ABC):
 
         file_extension = os.path.splitext(self.tool_path)[-1]
         if file_extension not in interpreters:
-            print(f"Interpreter not found for executable: {self.tool_path}")
+            print(f"Interpreter not found for script: {self.tool_path}")
+            print(f"Assuming the file is an executable")  # TODO: We should add a bit more description here
             return None
 
         self.interpreter = interpreters.get(file_extension)

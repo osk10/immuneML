@@ -17,37 +17,32 @@ definitions:
 
   preprocessing_sequences: # ------- Added preprocessing -------
     my_preprocessing_seq: # User-defined name of the preprocessing sequence (may contain one or more preprocessings)
-      - my_new_filter:                # User-defined name of one preprocessing
+      - my_new_filter:                # User-defined name of one preprocessing TODO: see if I can use the name of the preprocessing tool
+    # - my_preprocessing_tool: ToolPreprocessor
           ToolPreprocessor: # The name of the new preprocessor class
-            test: "test" # Could add the name of the tool here?
+            tool_name: my_preprocessing_tool # Used to reference the tool sent
+            # The ONLY parameter ToolProcessor should take is the tool name that it connects with
 
   reports:
     simple_overview: SimpleDatasetOverview
 
 
 instructions:
-  # TODO: export data
   my_dataset_export_instruction: # user-defined instruction name
     type: DatasetExport
     datasets: # specify the dataset defined above
     - dataset
     preprocessing_sequence: my_preprocessing_seq # TODO: add the preprocessing
     export_formats:
-    # only one format can be specified here and the dataset in this format will be
-    # available as a Galaxy collection afterwards
-    - AIRR # Can be AIRR (human-readable) or ImmuneML (recommended for further Galaxy-analysis)
+    - AIRR
 
 # Added tool part here
 tools:
   my_preprocessing_tool:
-    # The user needs to specify that they want to use a tool to do the preprocessing
-    # In this example we are defining a preprocessing tool that runs the dataset through Absolut
     type: PreprocessingTool
-    path: "" # Tool path. This is needed to find the file that immuneML will communicate with
-    # TODO: the user should add a preprocessor here. Need to figure out how to write this into it
-    params:
+    path: "/Users/jorgenskimmeland/Documents/aar5/Master/preprocessing test/preprocessingCPP" # Tool path. This is needed to find the file that immuneML will communicate with
+    params: # Specify the parameters that the preprocessor tool needs
       option: "repertoire"
       antigen: "1FBI"
-      filename: "" # this is supposedly the txt file that Absolut wants, but we are sending the preprocessed file
       threads: 3
 
