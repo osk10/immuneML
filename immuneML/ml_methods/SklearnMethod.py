@@ -127,9 +127,11 @@ class SklearnMethod(MLMethod):
 
     def check_is_fitted(self, label_name: str):
         if self.label.name == label_name or label_name is None:
-            return check_is_fitted(self.model, ["estimators_", "coef_", "estimator", "_fit_X", "dual_coef_"], all_or_any=any)
+            return check_is_fitted(self.model, ["estimators_", "coef_", "estimator", "_fit_X", "dual_coef_"],
+                                   all_or_any=any)
 
-    def fit_by_cross_validation(self, encoded_data: EncodedData, number_of_splits: int = 5, label: Label = None, cores_for_training: int = -1,
+    def fit_by_cross_validation(self, encoded_data: EncodedData, number_of_splits: int = 5, label: Label = None,
+                                cores_for_training: int = -1,
                                 optimization_metric='balanced_accuracy'):
 
         self.class_mapping = Util.make_class_mapping(encoded_data.labels[label.name])
@@ -137,10 +139,12 @@ class SklearnMethod(MLMethod):
         self.label = label
         mapped_y = Util.map_to_new_class_values(encoded_data.labels[self.label.name], self.class_mapping)
 
-        self.model = self._fit_by_cross_validation(encoded_data.examples, mapped_y, number_of_splits, label, cores_for_training,
-                                                  optimization_metric)
+        self.model = self._fit_by_cross_validation(encoded_data.examples, mapped_y, number_of_splits, label,
+                                                   cores_for_training,
+                                                   optimization_metric)
 
-    def _fit_by_cross_validation(self, X, y, number_of_splits: int = 5, label: Label = None, cores_for_training: int = 1,
+    def _fit_by_cross_validation(self, X, y, number_of_splits: int = 5, label: Label = None,
+                                 cores_for_training: int = 1,
                                  optimization_metric: str = "balanced_accuracy"):
 
         model = self._get_ml_model()
@@ -155,7 +159,8 @@ class SklearnMethod(MLMethod):
             warnings.simplefilter("ignore")
             os.environ["PYTHONWARNINGS"] = "ignore"
 
-        self.model = RandomizedSearchCV(model, param_distributions=self._parameter_grid, cv=number_of_splits, n_jobs=cores_for_training,
+        self.model = RandomizedSearchCV(model, param_distributions=self._parameter_grid, cv=number_of_splits,
+                                        n_jobs=cores_for_training,
                                         scoring=scoring, refit=True)
         self.model.fit(X, y)
 

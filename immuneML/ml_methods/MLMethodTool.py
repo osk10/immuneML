@@ -33,8 +33,8 @@ class MLMethodTool(MLMethod):
 
         }
         """
-        encoded_data_pickle = pickle.dumps(encoded_data)
-        InterfaceController.run_func(self.name, "run_fit", encoded_data_pickle)
+
+        InterfaceController.run_func(self.name, "run_fit", encoded_data)
 
         print("fit is running in ml method")
 

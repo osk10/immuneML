@@ -12,13 +12,14 @@ from immuneML.data_model.encoded_data.EncodedData import EncodedData
 from immuneML.data_model.receptor.receptor_sequence import ReceptorSequence
 from immuneML.encodings.DatasetEncoder import DatasetEncoder
 from immuneML.encodings.EncoderParams import EncoderParams
-from immuneML.util.ReadsType import ReadsType
 from immuneML.encodings.kmer_frequency.sequence_encoding.SequenceEncodingType import SequenceEncodingType
 from immuneML.encodings.preprocessing.FeatureScaler import FeatureScaler
 from immuneML.environment.Constants import Constants
 from immuneML.environment.SequenceType import SequenceType
 from immuneML.util.EncoderHelper import EncoderHelper
 from immuneML.util.ParameterValidator import ParameterValidator
+from immuneML.util.PathBuilder import PathBuilder
+from immuneML.util.ReadsType import ReadsType
 from immuneML.util.ReflectionHandler import ReflectionHandler
 
 
@@ -94,9 +95,12 @@ class KmerFrequencyEncoder(DatasetEncoder):
         "ReceptorDataset": "KmerFreqReceptorEncoder"
     }
 
-    def __init__(self, normalization_type: NormalizationType, reads: ReadsType, sequence_encoding: SequenceEncodingType, k: int = 0,
-                 k_left: int = 0, k_right: int = 0, min_gap: int = 0, max_gap: int = 0, metadata_fields_to_include: list = None,
-                 name: str = None, scale_to_unit_variance: bool = False, scale_to_zero_mean: bool = False, sequence_type: SequenceType = None):
+    def __init__(self, normalization_type: NormalizationType, reads: ReadsType, sequence_encoding: SequenceEncodingType,
+                 k: int = 0,
+                 k_left: int = 0, k_right: int = 0, min_gap: int = 0, max_gap: int = 0,
+                 metadata_fields_to_include: list = None,
+                 name: str = None, scale_to_unit_variance: bool = False, scale_to_zero_mean: bool = False,
+                 sequence_type: SequenceType = None, context: dict = None):
         self.normalization_type = normalization_type
         self.reads = reads
         self.sequence_encoding = sequence_encoding
@@ -112,25 +116,35 @@ class KmerFrequencyEncoder(DatasetEncoder):
         self.scale_to_zero_mean = scale_to_zero_mean
         self.scaler = None
         self.vectorizer = None
+        self.context = context
+
+    def set_context(self, context: dict):
+        self.context = context
+        return self
 
     @staticmethod
     def _prepare_parameters(normalization_type: str, reads: str, sequence_encoding: str, k: int = 0, k_left: int = 0,
-                            k_right: int = 0, min_gap: int = 0, max_gap: int = 0, metadata_fields_to_include: list = None, name: str = None,
-                            scale_to_unit_variance: bool = False, scale_to_zero_mean: bool = False, sequence_type: str = None):
+                            k_right: int = 0, min_gap: int = 0, max_gap: int = 0,
+                            metadata_fields_to_include: list = None, name: str = None,
+                            scale_to_unit_variance: bool = False, scale_to_zero_mean: bool = False,
+                            sequence_type: str = None):
 
         location = KmerFrequencyEncoder.__name__
 
-        ParameterValidator.assert_in_valid_list(normalization_type.upper(), [item.name for item in NormalizationType], location, "normalization_type")
+        ParameterValidator.assert_in_valid_list(normalization_type.upper(), [item.name for item in NormalizationType],
+                                                location, "normalization_type")
         ParameterValidator.assert_in_valid_list(reads.upper(), [item.name for item in ReadsType], location, "reads")
-        ParameterValidator.assert_in_valid_list(sequence_encoding.upper(), [item.name for item in SequenceEncodingType], location, "sequence_encoding")
+        ParameterValidator.assert_in_valid_list(sequence_encoding.upper(), [item.name for item in SequenceEncodingType],
+                                                location, "sequence_encoding")
         ParameterValidator.assert_type_and_value(scale_to_zero_mean, bool, location, "scale_to_zero_mean")
         ParameterValidator.assert_type_and_value(scale_to_unit_variance, bool, location, "scale_to_unit_variance")
         ParameterValidator.assert_type_and_value(sequence_type, str, location, 'sequence_type')
-        ParameterValidator.assert_in_valid_list(sequence_type.upper(), [st.name for st in SequenceType], location, 'sequence_type')
+        ParameterValidator.assert_in_valid_list(sequence_type.upper(), [st.name for st in SequenceType], location,
+                                                'sequence_type')
 
         if "IMGT" in sequence_encoding.upper():
             assert sequence_type.upper() == SequenceType.AMINO_ACID.name, f"{location}: for IMGT-based k-mer frequency encoding (here: " \
-                                                                     f"{sequence_encoding.upper()}), sequence type has to be 'amino_acid'."
+                                                                          f"{sequence_encoding.upper()}), sequence type has to be 'amino_acid'."
 
         vars_to_check = {"k": k, "k_left": k_left, "k_right": k_right, "min_gap": min_gap, "max_gap": max_gap}
         for param in vars_to_check.keys():
@@ -156,7 +170,7 @@ class KmerFrequencyEncoder(DatasetEncoder):
 
         prepared_params = KmerFrequencyEncoder._prepare_parameters(**params)
         encoder = ReflectionHandler.get_class_by_name(KmerFrequencyEncoder.dataset_mapping[dataset.__class__.__name__],
-                                                          "kmer_frequency/")(**prepared_params)
+                                                      "kmer_frequency/")(**prepared_params)
 
         return encoder
 
@@ -166,10 +180,29 @@ class KmerFrequencyEncoder(DatasetEncoder):
 
         encoded_dataset = CacheHandler.memo_by_params(cache_params, lambda: self._encode_new_dataset(dataset, params))
 
-        EncoderHelper.sync_encoder_with_cache(cache_params, lambda: {'vectorizer': self.vectorizer, 'scaler': self.scaler}, self,
+        EncoderHelper.sync_encoder_with_cache(cache_params,
+                                              lambda: {'vectorizer': self.vectorizer, 'scaler': self.scaler}, self,
                                               ['vectorizer', 'scaler'])
 
+        result_path = params.result_path / "encoding"
+        PathBuilder.build(result_path)
+        self.export_repertoire_tsv_files(result_path)
+
         return encoded_dataset
+
+    def export_repertoire_tsv_files(self, output_folder: Path):
+        repertoires = self.context["dataset"].repertoires
+
+        for repertoire in repertoires:
+            filepath = output_folder / f"{repertoire.identifier}.tsv"
+
+            # TODO: data structure from DeepRCEncoder.py, must be changed.. This is just to test usage.
+            if not filepath.is_file():
+                df = pd.DataFrame({self.sequence_encoding: repertoire.get_sequence_aas(),
+                                   "templates": repertoire.get_counts()})
+                df["templates"].fillna(1, inplace=True)
+
+                df.to_csv(path_or_buf=filepath, sep="\t", index=False)
 
     def _prepare_caching_params(self, dataset, params: EncoderParams, step: str = ""):
         return (("dataset_identifier", dataset.identifier),
@@ -195,13 +228,14 @@ class KmerFrequencyEncoder(DatasetEncoder):
             examples = normalized_examples
 
         feature_annotations = self._get_feature_annotations(feature_names, feature_annotation_names)
-
         encoded_data = EncodedData(examples=examples,
                                    labels=encoded_labels,
                                    feature_names=feature_names,
                                    example_ids=example_ids,
                                    feature_annotations=feature_annotations,
-                                   encoding=KmerFrequencyEncoder.__name__)
+                                   encoding=KmerFrequencyEncoder.__name__,
+                                   info={"metadata_filepath": dataset.metadata_file,
+                                         "dataset_filepath": params.result_path})
 
         return encoded_data
 
@@ -211,11 +245,13 @@ class KmerFrequencyEncoder(DatasetEncoder):
             self.scaler = StandardScaler(with_mean=self.scale_to_zero_mean)
             examples = CacheHandler.memo_by_params(
                 self._prepare_caching_params(dataset, params, step=KmerFrequencyEncoder.STEP_SCALED),
-                lambda: FeatureScaler.standard_scale_fit(self.scaler, normalized_examples, with_mean=self.scale_to_zero_mean))
+                lambda: FeatureScaler.standard_scale_fit(self.scaler, normalized_examples,
+                                                         with_mean=self.scale_to_zero_mean))
         else:
             examples = CacheHandler.memo_by_params(
                 self._prepare_caching_params(dataset, params, step=KmerFrequencyEncoder.STEP_SCALED),
-                lambda: FeatureScaler.standard_scale(self.scaler, normalized_examples, with_mean=self.scale_to_zero_mean))
+                lambda: FeatureScaler.standard_scale(self.scaler, normalized_examples,
+                                                     with_mean=self.scale_to_zero_mean))
 
         return examples
 
@@ -242,7 +278,8 @@ class KmerFrequencyEncoder(DatasetEncoder):
 
     def _get_feature_annotations(self, feature_names, feature_annotation_names):
         feature_annotations = pd.DataFrame({"feature": feature_names})
-        feature_annotations[feature_annotation_names] = feature_annotations['feature'].str.split(Constants.FEATURE_DELIMITER, expand=True)
+        feature_annotations[feature_annotation_names] = feature_annotations['feature'].str.split(
+            Constants.FEATURE_DELIMITER, expand=True)
         return feature_annotations
 
     def _prepare_sequence_encoder(self):

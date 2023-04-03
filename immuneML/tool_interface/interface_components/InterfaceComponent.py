@@ -57,6 +57,7 @@ class InterfaceComponent(ABC):
                 try:
                     sock.bind(("", port))
                     self.port = str(port)
+                    break
                 except OSError as e:
                     print(f"Error: {e}")
 

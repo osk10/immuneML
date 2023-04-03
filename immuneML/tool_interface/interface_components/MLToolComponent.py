@@ -1,4 +1,5 @@
 import json
+import pickle
 
 import numpy as np
 
@@ -9,11 +10,32 @@ class MLToolComponent(InterfaceComponent):
     def __init__(self, name: str, specs: dict):
         super().__init__(name, specs)
 
+    def _get_data(self, encoded_data):
+        if self.interpreter == "Python":
+            pickle_data = pickle.dumps(encoded_data)
+            return pickle_data
+        else:
+            paths = {
+                "metadata": encoded_data.info["metadata_filepath"],
+                "dataset": encoded_data.info["dataset_filepath"],
+            }
+            json_data = json.dumps(paths)
+            return json_data
+
+    # TODO: update sending data and receiving results
     def run_fit(self, encoded_data):
-        self.socket.send_pyobj(encoded_data)
-        result = json.loads(self.socket.recv_json())
-        if result["data_received"] is True:
-            print("Tool received data")
+        data = self._get_data(encoded_data)
+        if self.interpreter == "Python":
+            self.socket.send_pyobj(data)
+            result = json.loads(self.socket.recv_json())
+
+            if result["data_received"] is True:
+                print("Tool received data")
+        else:
+            self.socket.send_json(data)
+            result = json.loads(self.socket.recv_json())
+            if result["data_received"] is True:
+                print("Tool received data")
 
         x = {
             'fit': 1,

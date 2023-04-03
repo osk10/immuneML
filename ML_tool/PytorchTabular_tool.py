@@ -176,6 +176,7 @@ def store(model, feature_names, details_path):
     return json.dumps({"stored": 2})
 
 
+"""
 # COMMUNICATION WITH CORE
 # Get port from pipe
 port = sys.argv[1]
@@ -185,6 +186,21 @@ print("adress in tool", address)
 context = zmq.Context()
 socket = context.socket(zmq.REP)
 socket.bind(address)
+"""
+# Program must take the port number as only program input
+port_number = sys.argv[1]
+print(port_number)
+
+# Bind to ZeroMQ socket
+context = zmq.Context()
+socket = context.socket(zmq.REP)
+socket.bind("tcp://*" + port_number)
+
+# Wait for a message from immuneML. This will be empty
+socket.recv_json()
+
+# Send an acknowledgement message back. Must be json format and should be empty
+socket.send_json("")
 
 while True:
 
