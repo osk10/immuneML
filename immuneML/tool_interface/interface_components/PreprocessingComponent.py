@@ -20,7 +20,7 @@ class PreprocessingComponent(InterfaceComponent):
         tool_args = self.create_json_params(self.specs)
 
         # Add the dataset path to it
-        tool_args['file_path'] = dataset_path
+        #tool_args['file_path'] = dataset_path
 
         self.socket.send_json(tool_args)  # Send input to tool
 

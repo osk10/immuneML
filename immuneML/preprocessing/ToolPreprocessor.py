@@ -4,9 +4,12 @@ import pandas as pd
 import os
 
 from immuneML.IO.dataset_export.AIRRExporter import AIRRExporter
+from immuneML.IO.dataset_import.AIRRImport import AIRRImport
+from immuneML.environment.EnvironmentSettings import EnvironmentSettings
 
 from immuneML.preprocessing.Preprocessor import Preprocessor
 from immuneML.tool_interface import InterfaceController
+from immuneML.util.PathBuilder import PathBuilder
 
 
 class ToolPreprocessor(Preprocessor, ABC):
@@ -60,18 +63,25 @@ class ToolPreprocessor(Preprocessor, ABC):
         test_folder = processed_dataset.get_filenames()[0] / "exported"
 
         # FIRST: export the dataset to AIRR (.tsv) format that the external tool can handle
-        #AIRRExporter.export(dataset, test_folder)
+        path = "/Users/jorgenskimmeland/Documents/aar5/Master/preprocessing test/testingOutput/"
+        PathBuilder.build(path)
+        AIRRExporter.export(dataset, PathBuilder.build(path))
 
         # Run the interface 
         InterfaceController.run_func(params["tool_name"], "run_preprocessing", processed_dataset)
 
         # SECOND: import the dataset from AIRR (.tsv) format that the external tool has created
+        path = "/Users/jorgenskimmeland/Documents/aar5/Master/preprocessing test/testingOutput/batch1.tsv"
+        params = {
+            "path": path,
+            "result_path": path,
+            "is_repertoire": False,
+            "paired": False,
+            "receptor_chains": False
+        }
+        AIRRImport.import_dataset(params, "batch1")
 
         return processed_dataset
-
-
-
-
 
 
 
