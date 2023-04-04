@@ -3,8 +3,9 @@
 #   1. Handling the input data from immuneML
 #   2. Handling socket connection with immuneML
 
-import zmq
 import sys
+
+import zmq
 
 
 def main():
@@ -14,7 +15,7 @@ def main():
     # Bind to ZeroMQ socket
     context = zmq.Context()
     socket = context.socket(zmq.REP)
-    socket.bind("tcp://*" + port_number)
+    socket.bind("tcp://*:%s" % port_number)
 
     # Wait for a message from immuneML. This will be empty
     socket.recv_json()

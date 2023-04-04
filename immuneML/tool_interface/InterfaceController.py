@@ -44,10 +44,10 @@ def check_running(name: str) -> bool:
 
     if tool.process is not None:
         if psutil.pid_exists(tool.process.pid):
-            print("Process is running")
+            # print("Process is running")
             return True
         else:
-            print("Process stopped...")
+            # print("Process stopped...")
             return False
     else:
         return False

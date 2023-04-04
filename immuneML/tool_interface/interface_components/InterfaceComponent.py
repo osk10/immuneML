@@ -38,8 +38,8 @@ class InterfaceComponent(ABC):
         if file_extension not in interpreters:
             print(f"Interpreter not found for executable: {self.tool_path}")
             return None
-
-        self.interpreter = interpreters.get(file_extension)
+        else:
+            self.interpreter = interpreters.get(file_extension)
 
     def create_json_params(self, specs: dict) -> str:
         """ Creates a json string from tool params specified in YAML
@@ -73,6 +73,7 @@ class InterfaceComponent(ABC):
 
         self.process = subprocess.Popen(subprocess_args, stdin=subprocess.PIPE, cwd=working_dir)
 
+        # TODO: skal dette være med?
         # Wait for process to start
         while self.process is None:
             pass
@@ -107,7 +108,7 @@ class InterfaceComponent(ABC):
                 self.socket = context.socket(zmq.REQ)
                 self.socket.connect("tcp://localhost:" + self.port)
                 self.socket.send_string("")
-                self.socket.recv()
+                self.socket.recv_string()
                 # If we reach this point we have been able to create a connection
                 break
             except zmq.error.ZMQError:
@@ -118,6 +119,7 @@ class InterfaceComponent(ABC):
             time.sleep(1)  # add a sleep to give some time for the tool to connect
 
         print("Connected to tool")
+        # self.socket.send_json(json.dumps({"test": 123}))
 
     def close_connection(self):
         self.socket.close()

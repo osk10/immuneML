@@ -1,4 +1,3 @@
-import pickle
 from pathlib import Path
 
 from immuneML.data_model.encoded_data.EncodedData import EncodedData
@@ -12,36 +11,10 @@ class MLMethodTool(MLMethod):
         super().__init__()
 
     def fit(self, encoded_data: EncodedData, label: Label, cores_for_training: int = 2):
-        """
-        # serialization of data
-        encoding = json.dumps(encoded_data.encoding)
-        example_ids = json.dumps(encoded_data.example_ids)
-        examples = pickle.dumps(encoded_data.examples)
-        a = pickle.loads(examples)
-        feature_annotations = encoded_data.feature_annotations.to_json()
-        feature_names = json.dumps(encoded_data.feature_names)
-        labels = json.dumps(encoded_data.labels)
-
-        ab = pickle.dumps(encoded_data)
-
-        encoded_data_json = {
-            "encoding": encoding,
-            "example_ids": example_ids,
-            "examples": examples,
-            "feature_annotations": feature_annotations,
-            "labels": labels,
-
-        }
-        """
-
         InterfaceController.run_func(self.name, "run_fit", encoded_data)
 
-        print("fit is running in ml method")
-
     def predict(self, encoded_data: EncodedData, label: Label):
-        encoded_data_pickle = pickle.dumps(encoded_data)
-        result = InterfaceController.run_func(self.name, "run_predict", encoded_data_pickle)
-
+        result = InterfaceController.run_func(self.name, "run_predict", encoded_data)
         return result
 
     def fit_by_cross_validation(self, encoded_data: EncodedData, number_of_splits: int = 5, label: Label = None,
@@ -51,23 +24,22 @@ class MLMethodTool(MLMethod):
     def store(self, path: Path, feature_names: list = None, details_path: Path = None):
         # TODO: subprocess call store
         # store(path, feature_names, details_path)
-        print("TODO: store trained model in tool")
+        pass
 
     def load(self, path: Path):
         pass
 
     def check_if_exists(self, path: Path) -> bool:
-        pass
+        return False
 
     def get_classes(self) -> list:
-        return ["signal_disease"]
+        return [False, True]
 
     def get_params(self):
         pass
 
     def predict_proba(self, encoded_data: EncodedData, Label: Label):
-        encoded_data_pickle = pickle.dumps(encoded_data)
-        result = InterfaceController.run_func(self.name, "run_predict_proba", encoded_data_pickle)
+        result = InterfaceController.run_func(self.name, "run_predict_proba", encoded_data)
         return result
 
     def get_label_name(self) -> str:

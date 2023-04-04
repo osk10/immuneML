@@ -1,8 +1,6 @@
 import json
 import pickle
 
-import numpy as np
-
 from immuneML.tool_interface.interface_components.InterfaceComponent import InterfaceComponent
 
 
@@ -10,8 +8,8 @@ class MLToolComponent(InterfaceComponent):
     def __init__(self, name: str, specs: dict):
         super().__init__(name, specs)
 
-    def _get_data(self, encoded_data):
-        if self.interpreter == "Python":
+    def _prepare_data(self, encoded_data):
+        if self.interpreter == "python":
             pickle_data = pickle.dumps(encoded_data)
             return pickle_data
         else:
@@ -22,57 +20,70 @@ class MLToolComponent(InterfaceComponent):
             json_data = json.dumps(paths)
             return json_data
 
-    # TODO: update sending data and receiving results
     def run_fit(self, encoded_data):
-        data = self._get_data(encoded_data)
-        if self.interpreter == "Python":
+        data = self._prepare_data(encoded_data)
+        if self.interpreter == "python":
             self.socket.send_pyobj(data)
-            result = json.loads(self.socket.recv_json())
+            res = json.loads(self.socket.recv_json())
 
-            if result["data_received"] is True:
-                print("Tool received data")
+            if res["data_received"] is True:
+                # print("Tool received data")
+                pass
+            else:
+                # TODO: retry sending data?
+                pass
         else:
             self.socket.send_json(data)
             result = json.loads(self.socket.recv_json())
             if result["data_received"] is True:
-                print("Tool received data")
+                # print("Tool received data")
+                pass
 
+        # run function in tool
         x = {
             'fit': 1,
         }
         self.socket.send_json(json.dumps(x))
-        print(self.socket.recv_json())
+
+        # receive results and load pickle data
+        res = self.socket.recv_pyobj()
+        # print(pickle.loads(res))
 
     def run_predict(self, encoded_data):
-        self.socket.send_pyobj(encoded_data)
+        data = self._prepare_data(encoded_data)
+        self.socket.send_pyobj(data)
         result = json.loads(self.socket.recv_json())
         if result["data_received"] is True:
-            print("Tool received data")
+            # print("Tool received data")
+            pass
+        else:
+            # TODO: retry sending data
+            pass
 
+        # run function in tool
         x = {
             'predict': 1,
         }
         self.socket.send_json(json.dumps(x))
-        final_result = self.socket.recv_json()
-        print(json.loads(final_result))
-        final_json = json.loads(json.loads(final_result))
-        return final_json
+
+        # receive results and load pickle data
+        res = self.socket.recv_pyobj()
+        return pickle.loads(res)
 
     def run_predict_proba(self, encoded_data):
-        self.socket.send_pyobj(encoded_data)
+        data = self._prepare_data(encoded_data)
+        self.socket.send_pyobj(data)
         result = json.loads(self.socket.recv_json())
         if result["data_received"] is True:
-            print("Tool received data")
+            # print("Tool received data")
+            pass
 
+        # run function in tool
         x = {
             'predict_proba': 1,
         }
-
         self.socket.send_json(json.dumps(x))
-        final_result = self.socket.recv_json()
-        final_json = json.loads(final_result)
-        result_loads = json.loads(final_json)
-        final_results = {
-            "signal_disease": np.vstack([1 - np.array(result_loads["predictions"]), result_loads["predictions"]]).T}
 
-        return final_results
+        # receive results and load pickle data
+        res = self.socket.recv_pyobj()
+        return pickle.loads(res)
