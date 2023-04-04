@@ -1,7 +1,6 @@
 import argparse
 import logging
 import os
-import random
 import shutil
 import warnings
 from pathlib import Path
@@ -89,10 +88,9 @@ def main():
 
     namespace = parser.parse_args()
     namespace.specification_path = Path(namespace.specification_path)
-    # namespace.result_path = Path(namespace.result_path)
+    namespace.result_path = Path(namespace.result_path)
 
-    # TODO: remove. For testing, create unique result path everytime
-    namespace.result_path = "../../results/quickstart_results" + str(random.randint(0, 10000))
+    # namespace.result_path = "../../results/quickstart_results" + str(random.randint(0, 10000))
 
     run_immuneML(namespace)
 
