@@ -22,7 +22,7 @@ definitions: # mandatory keyword
       ...
   preprocessing_sequences: # optional keyword - present if preprocessing sequences are used
     my_preprocessing: # user-defined name of the preprocessing sequence
-     ...
+      ...
   reports: # optional keyword - present if reports are used
     my_report_1:
       ... 
@@ -32,10 +32,9 @@ instructions: # mandatory keyword - at least one instruction has to be specified
 output: # how to present the result after running (the only valid option now)
   format: HTML
 tools: # optional keyword - present if tools are used
-	my_ml_tool: # user-defined name of the tool
-		type: MLMethodTool # type of tool (the only valid option now)
-		params: # optional keyword - present if the tool requires params
-		
+   my_ml_tool: # user-defined name of the tool
+      type: MLMethodTool # type of tool (the only valid option now)
+      params: # optional keyword - present if the tool requires params
 ```
 
 ## Defining a tool
