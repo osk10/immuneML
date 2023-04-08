@@ -32,7 +32,7 @@ instructions:
     type: DatasetExport
     datasets: # specify the dataset defined above
     - dataset
-    preprocessing_sequence: my_preprocessing_seq # TODO: add the preprocessing
+    preprocessing_sequence: my_preprocessing_seq
     export_formats:
     - AIRR
 
@@ -41,8 +41,9 @@ tools:
   my_preprocessing_tool:
     type: PreprocessingTool
     path: "/Users/jorgenskimmeland/Documents/aar5/Master/preprocessing test/preprocessingCPP" # Tool path. This is needed to find the file that immuneML will communicate with
-    params: # Specify the parameters that the preprocessor tool needs
+    params: # Specify the parameters that the preprocessor tool needs. Defined by the tool developers
       option: "repertoire"
       antigen: "1FBI"
+      filename: "miniSetCDR3-TESTING.txt"
       threads: 3
 

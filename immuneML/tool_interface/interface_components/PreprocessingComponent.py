@@ -16,11 +16,10 @@ class PreprocessingComponent(InterfaceComponent):
 
         print("Sending parameters to preprocessing program")
 
-        # TODO: send the parameters to the tool
         tool_args = self.create_json_params(self.specs)
 
-        # Add the dataset path to it
-        #tool_args['file_path'] = dataset_path
+        # Add into tool_args the path to the dataset that is to be processed
+        tool_args = self.add_value_to_json_string(tool_args, "dataset_path", dataset_path)
 
         self.socket.send_json(tool_args)  # Send input to tool
 
@@ -31,14 +30,6 @@ class PreprocessingComponent(InterfaceComponent):
 
         dataset_path = response["dataset"]
 
-        self.insert_dataset_to_immuneML(dataset_path)
+        return dataset_path
 
 
-    def insert_dataset_to_immuneML(self, dataset_path: str) -> str:
-        """This function uses the dataset path returned from tool to replace the original dataset
-
-        """
-        print("Copying data from produced dataset and inserting into immuneML for further use")
-
-        returned_path = dataset_path
-        return returned_path

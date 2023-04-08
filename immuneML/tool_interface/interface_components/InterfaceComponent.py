@@ -50,6 +50,17 @@ class InterfaceComponent(ABC):
         else:
             return ""
 
+    def add_value_to_json_string(self, json_str, key, value) -> str:
+        """ Adds a new key, value pair to a string with json format
+
+        Returns the new string
+        """
+        dictionary = json.loads(json_str)
+
+        dictionary[key] = value
+
+        return json.dumps(dictionary)
+
     def set_port(self, start_port: int = 5000, end_port: int = 8000):
         """ Finds an available port on the computer to send to subprocess
         """
