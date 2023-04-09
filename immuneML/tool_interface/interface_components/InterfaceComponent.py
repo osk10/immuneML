@@ -8,6 +8,8 @@ from abc import ABC
 
 import zmq
 
+from immuneML.util.Logger import print_log
+
 
 class InterfaceComponent(ABC):
     def __init__(self, name: str, specs: dict):
@@ -36,7 +38,6 @@ class InterfaceComponent(ABC):
 
         file_extension = os.path.splitext(self.tool_path)[-1]
         if file_extension not in interpreters:
-            print(f"Interpreter not found for executable: {self.tool_path}")
             return None
         else:
             self.interpreter = interpreters.get(file_extension)
@@ -59,9 +60,12 @@ class InterfaceComponent(ABC):
                     self.port = str(port)
                     break
                 except OSError as e:
+                    # TODO: må denne printes ut eller kan vi bare passe her?
                     print(f"Error: {e}")
 
     def start_subprocess(self):
+        print_log(f"Starting tool named {self.name}...", include_datetime=True)
+
         self.set_port()
         working_dir = os.path.dirname(self.tool_path)
 
@@ -79,13 +83,10 @@ class InterfaceComponent(ABC):
             pass
 
     def stop_subprocess(self):
-
-        print("stopping tool process", self.process.pid)
         if self.process is not None:
-            # TODO: should we use self.process.kill or terminate
+            print_log(f"Stopping tool named {self.name}...", include_datetime=True)
             self.process.kill()
             self.process = None
-        print("tool process stopped")
 
     def open_connection(self):
         # TODO: (important info of how to connect to tool)
@@ -94,7 +95,6 @@ class InterfaceComponent(ABC):
         #  - Once we have received an ack back, opening the connection is done and immuneML can continue with its
         #    functionality
 
-        print("Connecting to tool…")
         attempts = 0
         context = None
 
@@ -118,13 +118,8 @@ class InterfaceComponent(ABC):
                 context.term()
             time.sleep(1)  # add a sleep to give some time for the tool to connect
 
-        print("Connected to tool")
-        # self.socket.send_json(json.dumps({"test": 123}))
-
     def close_connection(self):
         self.socket.close()
-
-        # TODO: should we use self.context.term() as well?
 
     def execution_animation(self, process: subprocess):
         """Function creates an animation to give user feedback while process is running
