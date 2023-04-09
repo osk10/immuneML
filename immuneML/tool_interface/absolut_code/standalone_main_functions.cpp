@@ -23,21 +23,190 @@ This file is necessary to be able to use the function inside the interface_execu
 #include "../Absolut/dlab.h"
 #include <iostream>
 #include <fstream>
+#include <experimental/filesystem>
 
 #include <iostream>
 using namespace std;
+namespace fs = std::experimental::filesystem;
 
 
+// -------------------------------- CODE FOR HANDLING INPUT FILE --------------------------------
 
 
-int testing_return() {
-    std::cout << "Hey there broski" << std::endl;
-    return 0;
+std::string txt_to_tsv(std::string input_file, std::string output_file) {
+    ifstream infile(input_file); // Open input file
+    ofstream outfile(output_file); // Create output file
+
+    // Ignore the antigen at the top of the file
+    string unused_line;
+    getline(infile, unused_line);
+
+    // Get header
+    string line;
+    getline(infile, line);
+
+    // Write the header to the output file
+    outfile << line << endl;
+
+    // Read the rest of the lines and write them to the output file as TSV
+    while (getline(infile, line)) {
+        size_t pos = 0;
+
+        // Replace spaces with tabs
+        while ((pos = line.find(" ", pos)) != string::npos) {
+            line.replace(pos, 1, "\t");
+            pos += 1;
+        }
+
+        // Write the line to the output file
+        outfile << line << endl;
+    }
+
+    // Close the files
+    infile.close();
+    outfile.close();
+
+    return output_file;
+}
+
+std::string add_columns_to_dataset(const std::string& first_file, const std::string& second_file, const std::vector<std::string>& columns_to_add, const std::string& output_file) {
+    // Adds columns from second file into the first file
+    // Open input files
+    std::ifstream first_infile(first_file);
+    std::ifstream second_infile(second_file);
+    // Open output file
+    std::ofstream outfile(output_file);
+
+    // Read header lines from both files
+    std::string first_header, second_header;
+    std::getline(first_infile, first_header);
+    std::getline(second_infile, second_header);
+
+    // Get column indices of columns to add from second file
+    std::vector<int> column_indices_to_add;
+    std::istringstream second_header_iss(second_header);
+    std::string second_field;
+    int index = 0;
+    while (std::getline(second_header_iss, second_field, '\t')) {
+        if (std::find(columns_to_add.begin(), columns_to_add.end(), second_field) != columns_to_add.end()) {
+            column_indices_to_add.push_back(index);
+        }
+        index++;
+    }
+
+    // Write merged header line to output file
+    outfile << first_header;
+    for (const auto& col : columns_to_add) {
+        outfile << "\t" << col;
+    }
+    outfile << std::endl;
+
+    // Merge rows from both files
+    std::string line;
+    while (std::getline(first_infile, line)) {
+        std::istringstream first_iss(line);
+        std::string field;
+        std::vector<std::string> fields;
+        while (std::getline(first_iss, field, '\t')) {
+            fields.push_back(field);
+        }
+
+        // Read corresponding row from second file and append desired columns to current row
+        std::getline(second_infile, line);
+        std::istringstream second_iss(line);
+        index = 0;
+        while (std::getline(second_iss, field, '\t')) {
+            if (std::find(column_indices_to_add.begin(), column_indices_to_add.end(), index) != column_indices_to_add.end()) {
+                fields.push_back(field);
+            }
+            index++;
+        }
+
+        // Write merged row to output file
+        for (size_t i = 0; i < fields.size(); i++) {
+            outfile << fields[i];
+            if (i < fields.size() - 1) {
+                outfile << "\t";
+            }
+        }
+        outfile << std::endl;
+    }
+    return output_file;
+}
+
+std::string tsv_dataset_to_absolut_file(std::string target_header, std::string input_file, std::string output_file) {
+    // target_header = the name of the column
+    ifstream infile(input_file);
+    ofstream outfile(output_file);
+
+    string header_row;
+    getline(infile, header_row);
+
+    vector<string> headers;
+    istringstream header_ss(header_row);
+    string header;
+    while (getline(header_ss, header, '\t')) {
+        headers.push_back(header); // store the header names
+    }
+
+    int target_index = -1;
+    for (int i = 0; i < headers.size(); i++) {
+        if (headers[i] == target_header) {
+            target_index = i;
+            break;
+        }
+    }
+
+    string line;
+    int line_num = 0;
+    while (getline(infile, line)) {
+        istringstream line_ss(line);
+        string token;
+        int i = 0;
+        while (getline(line_ss, token, '\t')) {
+            if (i == target_index) {
+                outfile << ++line_num << "\t" << token << endl; // write content of desired column
+                break;
+            }
+            i++;
+        }
+    }
+    infile.close();
+    outfile.close();
+
+    return output_file;
+}
+
+std::string filter_out_worse(std::string input_file, std::string output_file) {
+    //Removes rows in dataset where best is false
+    std::ifstream infile(input_file); // open TSV input file
+    std::ofstream outfile(output_file); // create output TSV file
+
+    std::string line;
+    std::getline(infile, line); // read and discard header line
+    outfile << line << std::endl; // write line to output file
+
+    std::vector<std::string> fields;
+    std::string last_cdr3 = ""; // Make sure to check which was the last cdr3 to avoid double up
+    while (std::getline(infile, line)) {
+        std::istringstream iss(line);
+        std::string field, cdr3;
+        std::getline(iss, field, '\t'); // read ID_slide_Variant field
+        std::getline(iss, cdr3, '\t'); // read CDR3 field
+        std::getline(iss, field, '\t'); // read Best field
+        if (field != "false") {
+            if (cdr3 != last_cdr3) { // Just keep one cdr3, being the first if multiple are true
+                outfile << line << std::endl; // write line to output file
+                last_cdr3 = field; // update last CDR3 string
+            }
+        }
+    }
+
+    return output_file;
 }
 
 
-
-// -------------------------------- CODE FROM ABSOLUT --------------------------------
+// --------------------------------      CODE FROM ABSOLUT       --------------------------------
 // for absolut this is 10 and 11
 #define DefaultReceptorSizeBonds 10
 #define DefaultContactPoints 11

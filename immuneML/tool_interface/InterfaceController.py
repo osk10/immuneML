@@ -10,6 +10,8 @@ toolTable = ToolTable()
 
 
 def get_tool_path(name: str):
+    """ Returns the tool path defined in the YAML specification file
+    """
     return toolTable.get(name).tool_path
 
 
