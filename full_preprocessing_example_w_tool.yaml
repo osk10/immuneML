@@ -44,6 +44,5 @@ tools:
     params: # Specify the parameters that the preprocessor tool needs. Defined by the tool developers
       option: "repertoire"
       antigen: "1FBI"
-      #filename: "miniSetCDR3-TESTING.txt"      In this example, the dataset will added in the preprocessing component
       threads: 3
 

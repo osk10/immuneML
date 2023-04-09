@@ -9,6 +9,10 @@ from immuneML.tool_interface.interface_components.PreprocessingComponent import 
 toolTable = ToolTable()
 
 
+def get_tool_path(name: str):
+    return toolTable.get(name).tool_path
+
+
 def create_component(tool_type: ToolType, name: str, specs: dict):
     if tool_type == ToolType.ML_TOOL:
         new_component = MLToolComponent(name, specs)

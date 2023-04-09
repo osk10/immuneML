@@ -1,6 +1,7 @@
+import os.path
+import shutil
 from abc import ABC
 from pathlib import Path
-
 
 from immuneML.IO.dataset_export.AIRRExporter import AIRRExporter
 from immuneML.preprocessing.Preprocessor import Preprocessor
@@ -13,16 +14,14 @@ class ToolPreprocessor(Preprocessor, ABC):
 
     YAML specification:
 
-    # TODO: do changes here!!
     .. indent with spaces
     .. code-block:: yaml
 
         preprocessing_sequences:
             my_preprocessing:
                 - my_filter:
-                    NewClonesPerRepertoireFilter:
-                        lower_limit: 100
-                        upper_limit: 100000
+                    ToolPreprocessor:
+                        tool_name: my_preprocessing_tool
     """
 
     def __init__(self, tool_name: str, result_path: Path = None):
@@ -34,28 +33,26 @@ class ToolPreprocessor(Preprocessor, ABC):
         """
 
         params = {"result_path": result_path, "tool_name": self.tool_name}
-        print(f"Params to tool: {params}")
         return ToolPreprocessor.process(dataset, params)
 
     @staticmethod
     def process(dataset, params: dict):
         """ Takes a dataset and returns a new (modified) dataset.
         """
-
         processed_dataset = dataset.clone()
 
-        # FIRST: export the dataset to AIRR (.tsv) format that the external tool can handle
-        # TODO: we need to get the path to the the folder where we want to work
-        path = "/Users/jorgenskimmeland/Documents/aar5/Master/Absolut/Absolut-main/src/immuneML_interface"
+        # Export the dataset to the folder on which the tool script is located
+        tool_script_path = InterfaceController.get_tool_path(params["tool_name"])
+        path = os.path.dirname(tool_script_path)
         path = PathBuilder.build(path)
         AIRRExporter.export(dataset, path)
 
-        # TODO: get the filepath
-
         # Start the tool handling the dataset. Returns a path to the dataset
-        result = InterfaceController.run_func(params["tool_name"], "run_preprocessing", "batch1.tsv") # batch1.tsv is a default name
+        result = InterfaceController.run_func(params["tool_name"], "run_preprocessing",
+                                              "batch1.tsv")  # batch1.tsv is a default name
 
-        # TODO: move the file to a defined folder
+        # Finally, insert the dataset into a folder located inside immuneML that can be further used
+        ToolPreprocessor.insert_dataset_to_immuneML(result)
 
         return processed_dataset
 
@@ -72,3 +69,11 @@ class ToolPreprocessor(Preprocessor, ABC):
         number of examples in the dataset
         """
         return True
+
+    @staticmethod
+    def insert_dataset_to_immuneML(file_path):
+        """ Receives a file path, creates a copy of the file and inserts it to generated_datasets folder
+        """
+        destination_folder = "../tool_interface/generated_datasets/"
+
+        shutil.copy(file_path, destination_folder)
