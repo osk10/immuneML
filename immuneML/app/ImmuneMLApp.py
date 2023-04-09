@@ -90,8 +90,6 @@ def main():
     namespace.specification_path = Path(namespace.specification_path)
     namespace.result_path = Path(namespace.result_path)
 
-    # namespace.result_path = "../../results/quickstart_results" + str(random.randint(0, 10000))
-
     run_immuneML(namespace)
 
 
