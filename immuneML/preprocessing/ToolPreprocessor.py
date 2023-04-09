@@ -45,19 +45,17 @@ class ToolPreprocessor(Preprocessor, ABC):
         processed_dataset = dataset.clone()
 
         # FIRST: export the dataset to AIRR (.tsv) format that the external tool can handle
-        path = "/Users/jorgenskimmeland/Documents/aar5/Master/preprocessing test/testingOutput"
+        # TODO: we need to get the path to the the folder where we want to work
+        path = "/Users/jorgenskimmeland/Documents/aar5/Master/Absolut/Absolut-main/src/immuneML_interface"
         path = PathBuilder.build(path)
         AIRRExporter.export(dataset, path)
 
         # TODO: get the filepath
 
         # Start the tool handling the dataset. Returns a path to the dataset
-        result = InterfaceController.run_func(params["tool_name"], "run_preprocessing")
+        result = InterfaceController.run_func(params["tool_name"], "run_preprocessing", "batch1.tsv") # batch1.tsv is a default name
 
-        # Get as result the path to the file that has been extended
-
-        #path = "/Users/jorgenskimmeland/Documents/aar5/Master/preprocessing test/testingOutput/merged_file.tsv"
-        #result_path = "/Users/jorgenskimmeland/Documents/aar5/Master/preprocessing test/testingOutput/"
+        # TODO: move the file to a defined folder
 
         return processed_dataset
 

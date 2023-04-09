@@ -40,10 +40,10 @@ instructions:
 tools:
   my_preprocessing_tool:
     type: PreprocessingTool
-    path: "/Users/jorgenskimmeland/Documents/aar5/Master/preprocessing test/preprocessingCPP" # Tool path. This is needed to find the file that immuneML will communicate with
+    path: "/Users/jorgenskimmeland/Documents/aar5/Master/Absolut/Absolut-main/src/immuneML_interface/AbsolutNoLib" # Tool path. This is needed to find the file that immuneML will communicate with
     params: # Specify the parameters that the preprocessor tool needs. Defined by the tool developers
       option: "repertoire"
       antigen: "1FBI"
-      filename: "miniSetCDR3-TESTING.txt"
+      #filename: "miniSetCDR3-TESTING.txt"      In this example, the dataset will added in the preprocessing component
       threads: 3
 
