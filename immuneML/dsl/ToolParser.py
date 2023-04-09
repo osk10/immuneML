@@ -22,10 +22,9 @@ class ToolParser:
 
     @staticmethod
     def _parse_tool(key: str, tool_item: dict, symbol_table: SymbolTable):
-        # assert valid keys
-        # path - required
-        # type - required
-        # name - required?
+        # check that all keys are valid
+        ParameterValidator.assert_all_in_valid_list(list(tool_item.keys()), ["type", "path", "params"],
+                                                    ToolParser.__name__, key)
 
         # check that all required parameters are present
         ParameterValidator.assert_keys_present(list(tool_item.keys()), ["type", "path"], ToolParser.__name__,
@@ -34,7 +33,6 @@ class ToolParser:
         # check that the value of type is valid
         valid_types = ["MLMethodTool"]
         ParameterValidator.assert_in_valid_list(tool_item["type"], valid_types, "ToolParser", "type")
-
         tool_specification = {**tool_item}
 
         ToolParser.create_component_instance(tool_specification, key)
