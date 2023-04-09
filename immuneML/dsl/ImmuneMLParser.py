@@ -143,12 +143,6 @@ class ImmuneMLParser:
         # parse tool section in YAML file
         symbol_table, workflow_specification = ToolParser.parse(workflow_specification, symbol_table)
 
-        # TODO: run dataset tool.
-
-        # temporary solution. Adds tool folder to environment which is used when importing
-        # packages that is located outside the core
-        # workflow_specification = get_dataset(symbol_table, workflow_specification)
-
         def_parser_output, specs_defs = DefinitionParser.parse(workflow_specification, symbol_table, result_path)
         symbol_table, specs_instructions = InstructionParser.parse(def_parser_output, result_path)
         app_output = OutputParser.parse(workflow_specification, symbol_table)
