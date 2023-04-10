@@ -25,19 +25,26 @@ from immuneML.workflows.instructions.TrainMLModelInstruction import TrainMLModel
 
 class TrainMLModelParser:
 
-    def parse(self, key: str, instruction: dict, symbol_table: SymbolTable, path: Path = None) -> TrainMLModelInstruction:
+    def parse(self, key: str, instruction: dict, symbol_table: SymbolTable,
+              path: Path = None) -> TrainMLModelInstruction:
 
-        valid_keys = ["assessment", "selection", "dataset", "strategy", "labels", "metrics", "settings", "number_of_processes", "type", "reports",
+        valid_keys = ["assessment", "selection", "dataset", "strategy", "labels", "metrics", "settings",
+                      "number_of_processes", "type", "reports",
                       "optimization_metric", 'refit_optimal_model']
         ParameterValidator.assert_type_and_value(instruction['settings'], list, TrainMLModelParser.__name__, 'settings')
-        ParameterValidator.assert_keys(list(instruction.keys()), valid_keys, TrainMLModelParser.__name__, "TrainMLModel")
-        ParameterValidator.assert_type_and_value(instruction['refit_optimal_model'], bool, TrainMLModelParser.__name__, 'refit_optimal_model')
+        ParameterValidator.assert_keys(list(instruction.keys()), valid_keys, TrainMLModelParser.__name__,
+                                       "TrainMLModel")
+        ParameterValidator.assert_type_and_value(instruction['refit_optimal_model'], bool, TrainMLModelParser.__name__,
+                                                 'refit_optimal_model')
         ParameterValidator.assert_type_and_value(instruction['metrics'], list, TrainMLModelParser.__name__, 'metrics')
-        ParameterValidator.assert_type_and_value(instruction['optimization_metric'], str, TrainMLModelParser.__name__, 'optimization_metric')
-        ParameterValidator.assert_type_and_value(instruction['number_of_processes'], int, TrainMLModelParser.__name__, 'number_of_processes')
+        ParameterValidator.assert_type_and_value(instruction['optimization_metric'], str, TrainMLModelParser.__name__,
+                                                 'optimization_metric')
+        ParameterValidator.assert_type_and_value(instruction['number_of_processes'], int, TrainMLModelParser.__name__,
+                                                 'number_of_processes')
         ParameterValidator.assert_type_and_value(instruction['strategy'], str, TrainMLModelParser.__name__, 'strategy')
         if instruction["reports"] is not None:
-            ParameterValidator.assert_type_and_value(instruction['reports'], list, TrainMLModelParser.__name__, 'reports')
+            ParameterValidator.assert_type_and_value(instruction['reports'], list, TrainMLModelParser.__name__,
+                                                     'reports')
 
         settings = self._parse_settings(instruction, symbol_table)
         dataset = symbol_table.get(instruction["dataset"])
@@ -46,28 +53,34 @@ class TrainMLModelParser:
         selection = self._parse_split_config(key, instruction, "selection", symbol_table, len(settings), label_config)
         assessment, selection = self._update_split_configs(assessment, selection, dataset)
         strategy = ReflectionHandler.get_class_by_name(instruction["strategy"], "hyperparameter_optimization/")
-        metrics = {Metric[metric.upper()] for metric in instruction["metrics"]}
-        optimization_metric = Metric[instruction["optimization_metric"].upper()]
+        metrics = {Metric.get_metric(metric) for metric in instruction["metrics"]}
+        optimization_metric = Metric.get_metric(instruction["optimization_metric"].upper())
         metric_search_criterion = Metric.get_search_criterion(optimization_metric)
         path = self._prepare_path(instruction)
         context = self._prepare_context(instruction, symbol_table)
         reports = self._prepare_reports(instruction["reports"], symbol_table)
 
-        hp_instruction = TrainMLModelInstruction(dataset=dataset, hp_strategy=strategy(settings, metric_search_criterion),
-                                                 hp_settings=settings, assessment=assessment, selection=selection, metrics=metrics,
-                                                 optimization_metric=optimization_metric, refit_optimal_model=instruction['refit_optimal_model'],
+        hp_instruction = TrainMLModelInstruction(dataset=dataset,
+                                                 hp_strategy=strategy(settings, metric_search_criterion),
+                                                 hp_settings=settings, assessment=assessment, selection=selection,
+                                                 metrics=metrics,
+                                                 optimization_metric=optimization_metric,
+                                                 refit_optimal_model=instruction['refit_optimal_model'],
                                                  label_configuration=label_config, path=path, context=context,
-                                                 number_of_processes=instruction["number_of_processes"], reports=reports, name=key)
+                                                 number_of_processes=instruction["number_of_processes"],
+                                                 reports=reports, name=key)
 
         return hp_instruction
 
-    def _update_split_configs(self, assessment: SplitConfig, selection: SplitConfig, dataset: Dataset) -> Tuple[SplitConfig, SplitConfig]:
+    def _update_split_configs(self, assessment: SplitConfig, selection: SplitConfig, dataset: Dataset) -> Tuple[
+        SplitConfig, SplitConfig]:
 
         if assessment.split_strategy == SplitType.LOOCV:
             assessment.split_count = dataset.get_example_count()
             train_val_example_count = assessment.split_count - 1
         elif assessment.split_strategy == SplitType.K_FOLD or assessment.split_strategy.STRATIFIED_K_FOLD:
-            train_val_example_count = int(dataset.get_example_count() * (assessment.split_count - 1) / assessment.split_count)
+            train_val_example_count = int(
+                dataset.get_example_count() * (assessment.split_count - 1) / assessment.split_count)
         else:
             train_val_example_count = int(dataset.get_example_count() * assessment.training_percentage)
 
@@ -80,7 +93,8 @@ class TrainMLModelParser:
         if reports is not None:
             ParameterValidator.assert_type_and_value(reports, list, TrainMLModelParser.__name__, "reports")
             report_objects = {report_id: symbol_table.get(report_id) for report_id in reports}
-            ParameterValidator.assert_all_type_and_value(report_objects.values(), TrainMLModelReport, TrainMLModelParser.__name__, 'reports')
+            ParameterValidator.assert_all_type_and_value(report_objects.values(), TrainMLModelReport,
+                                                         TrainMLModelParser.__name__, 'reports')
             return report_objects
         else:
             return {}
@@ -93,29 +107,34 @@ class TrainMLModelParser:
             settings = []
             for index, setting in enumerate(instruction["settings"]):
                 if "preprocessing" in setting and setting["preprocessing"] is not None:
-                    ParameterValidator.assert_type_and_value(setting["preprocessing"], str, TrainMLModelParser.__name__, f'settings: {index+1}. '
-                                                                                                                         f'element: preprocessing')
+                    ParameterValidator.assert_type_and_value(setting["preprocessing"], str, TrainMLModelParser.__name__,
+                                                             f'settings: {index + 1}. '
+                                                             f'element: preprocessing')
                     if symbol_table.contains(setting["preprocessing"]):
                         preprocessing_sequence = symbol_table.get(setting["preprocessing"])
                         preproc_name = setting["preprocessing"]
                         if not all(preproc.keeps_example_count() for preproc in preprocessing_sequence):
-                            raise ValueError(f"{TrainMLModelParser.__name__}: preprocessing sequence {preproc_name} includes preprocessing that "
-                                             f"change the number of examples at runtime and as such cannot be used with this instruction. See the "
-                                             f"documentation for the preprocessing or alternatively use them with other instructions.")
+                            raise ValueError(
+                                f"{TrainMLModelParser.__name__}: preprocessing sequence {preproc_name} includes preprocessing that "
+                                f"change the number of examples at runtime and as such cannot be used with this instruction. See the "
+                                f"documentation for the preprocessing or alternatively use them with other instructions.")
                     else:
-                        raise KeyError(f"{TrainMLModelParser.__name__}: preprocessing was set in the TrainMLModel instruction to value "
-                                       f"{setting['preprocessing']}, but no such preprocessing was defined in the specification under "
-                                       f"definitions: {PreprocessingParser.keyword}.")
+                        raise KeyError(
+                            f"{TrainMLModelParser.__name__}: preprocessing was set in the TrainMLModel instruction to value "
+                            f"{setting['preprocessing']}, but no such preprocessing was defined in the specification under "
+                            f"definitions: {PreprocessingParser.keyword}.")
                 else:
                     setting["preprocessing"] = None
                     preprocessing_sequence = []
                     preproc_name = None
 
-                ParameterValidator.assert_keys(setting.keys(), ["preprocessing", "ml_method", "encoding"], TrainMLModelParser.__name__,
+                ParameterValidator.assert_keys(setting.keys(), ["preprocessing", "ml_method", "encoding"],
+                                               TrainMLModelParser.__name__,
                                                f"settings, {index + 1}. entry")
 
                 encoder = symbol_table.get(setting["encoding"]).build_object(symbol_table.get(instruction["dataset"]),
-                                                                             **symbol_table.get_config(setting["encoding"])["encoder_params"])\
+                                                                             **symbol_table.get_config(
+                                                                                 setting["encoding"])["encoder_params"]) \
                     .set_context({"dataset": symbol_table.get(instruction['dataset'])})
 
                 ml_method = symbol_table.get(setting["ml_method"])
@@ -131,7 +150,8 @@ class TrainMLModelParser:
                 settings.append(s)
             return settings
         except KeyError as key_error:
-            raise KeyError(f"{TrainMLModelParser.__name__}: parameter {key_error.args[0]} was not defined under settings in TrainMLModel instruction.")
+            raise KeyError(
+                f"{TrainMLModelParser.__name__}: parameter {key_error.args[0]} was not defined under settings in TrainMLModel instruction.")
 
     def _prepare_path(self, instruction: dict) -> Path:
         if "path" in instruction:
@@ -141,7 +161,8 @@ class TrainMLModelParser:
 
         return path
 
-    def _parse_split_config(self, instruction_key, instruction: dict, split_key: str, symbol_table: SymbolTable, settings_count: int,
+    def _parse_split_config(self, instruction_key, instruction: dict, split_key: str, symbol_table: SymbolTable,
+                            settings_count: int,
                             label_config: LabelConfiguration) -> SplitConfig:
 
         try:
@@ -151,27 +172,33 @@ class TrainMLModelParser:
             instruction[split_key] = {**default_params, **instruction[split_key]}
 
             split_strategy = SplitType[instruction[split_key]["split_strategy"].upper()]
-            training_percentage = float(instruction[split_key]["training_percentage"]) if split_strategy == SplitType.RANDOM else -1
+            training_percentage = float(
+                instruction[split_key]["training_percentage"]) if split_strategy == SplitType.RANDOM else -1
 
             if split_strategy == SplitType.RANDOM and training_percentage == 1 and settings_count > 1:
-                raise ValueError(f"{TrainMLModelParser.__name__}: all data under {instruction_key}/{split_key} was specified to be used for "
-                                 f"training, but {settings_count} settings were specified for evaluation. Please define a test/validation set by "
-                                 f"reducing the training percentage (e.g., to 0.7) or use only one hyperparameter setting to run the analysis.")
+                raise ValueError(
+                    f"{TrainMLModelParser.__name__}: all data under {instruction_key}/{split_key} was specified to be used for "
+                    f"training, but {settings_count} settings were specified for evaluation. Please define a test/validation set by "
+                    f"reducing the training percentage (e.g., to 0.7) or use only one hyperparameter setting to run the analysis.")
 
             if split_strategy == SplitType.STRATIFIED_K_FOLD and len(label_config.get_labels_by_name()) != 1:
-                raise ValueError(f"{TrainMLModelParser.__name__}: Stratified k-fold cross-validation cannot be used when "
-                                 f"{len(label_config.get_labels_by_name())} labels are specified. It support only one label (and multiple classes).")
+                raise ValueError(
+                    f"{TrainMLModelParser.__name__}: Stratified k-fold cross-validation cannot be used when "
+                    f"{len(label_config.get_labels_by_name())} labels are specified. It support only one label (and multiple classes).")
 
             return SplitConfig(split_strategy=split_strategy,
                                split_count=int(instruction[split_key]["split_count"]),
                                training_percentage=training_percentage,
                                reports=ReportConfig(**report_config_input),
-                               manual_config=ManualSplitConfig(**instruction[split_key]["manual_config"]) if "manual_config" in instruction[split_key] else None,
+                               manual_config=ManualSplitConfig(
+                                   **instruction[split_key]["manual_config"]) if "manual_config" in instruction[
+                                   split_key] else None,
                                leave_one_out_config=LeaveOneOutConfig(**instruction[split_key]["leave_one_out_config"])
                                if "leave_one_out_config" in instruction[split_key] else None)
 
         except KeyError as key_error:
-            raise KeyError(f"{TrainMLModelParser.__name__}: parameter {key_error.args[0]} was not defined under {split_key}.")
+            raise KeyError(
+                f"{TrainMLModelParser.__name__}: parameter {key_error.args[0]} was not defined under {split_key}.")
 
     def _prepare_report_config(self, instruction_key, instruction, split_key, symbol_table):
         if "reports" in instruction[split_key] and len(instruction[split_key]["reports"]) > 0:
@@ -181,10 +208,12 @@ class TrainMLModelParser:
                                                         location, "reports")
 
             for report_type in instruction[split_key]["reports"]:
-                ParameterValidator.assert_type_and_value(instruction[split_key]["reports"][report_type], list, f"{location}/{report_type}",
+                ParameterValidator.assert_type_and_value(instruction[split_key]["reports"][report_type], list,
+                                                         f"{location}/{report_type}",
                                                          report_type)
 
-            report_config_input = {report_type: {report_id: symbol_table.get(report_id) for report_id in instruction[split_key]["reports"][report_type]}
+            report_config_input = {report_type: {report_id: symbol_table.get(report_id) for report_id in
+                                                 instruction[split_key]["reports"][report_type]}
                                    for report_type in instruction[split_key]["reports"]}
         else:
             report_config_input = {}

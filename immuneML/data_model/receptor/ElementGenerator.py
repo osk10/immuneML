@@ -21,9 +21,11 @@ class ElementGenerator:
             f"{ElementGenerator.__name__}: cannot load the binary file, the class {element_class.__name__} has no 'create_from_record' method."
 
         try:
-            elements = [element_class.create_from_record(el) for el in np.load(self.file_list[current_file], allow_pickle=False)]
+            elements = [element_class.create_from_record(el) for el in
+                        np.load(self.file_list[current_file], allow_pickle=False)]
         except ValueError as error:
-            raise ValueError(f'{ElementGenerator.__name__}: an error occurred while creating an object from binary file. Details: {error}')
+            raise ValueError(
+                f'{ElementGenerator.__name__}: an error occurred while creating an object from binary file. Details: {error}')
 
         return elements
 
@@ -83,7 +85,7 @@ class ElementGenerator:
             elements.extend(extracted_elements)
 
             if len(elements) >= self.file_size or len(elements) == len(example_indices):
-                self._store_elements_to_file(batch_filenames[file_count-1], elements[:self.file_size])
+                self._store_elements_to_file(batch_filenames[file_count - 1], elements[:self.file_size])
                 file_count += 1
                 elements = elements[self.file_size:]
 
@@ -95,17 +97,24 @@ class ElementGenerator:
     def _prepare_batch_filenames(self, example_count: int, path: Path, dataset_type: str, dataset_identifier: str):
         batch_count = math.ceil(example_count / self.file_size)
         digits_count = len(str(batch_count)) + 1
-        filenames = [path / f"{dataset_identifier}_{dataset_type}_batch{''.join(['0' for i in range(digits_count-len(str(index)))])}{index}.npy"
-                     for index in range(batch_count)]
+        filenames = [
+            path / f"{dataset_identifier}_{dataset_type}_batch{''.join(['0' for i in range(digits_count - len(str(index)))])}{index}.npy"
+            for index in range(batch_count)]
         return filenames
 
     def _store_elements_to_file(self, path, elements):
         if isinstance(elements, list) and len(elements) > 0:
-            element_matrix = np.core.records.fromrecords([el.get_record() for el in elements], names=type(elements[0]).get_record_names())
+            element_matrix = np.core.records.fromrecords([el.get_record() for el in elements],
+                                                         names=type(elements[0]).get_record_names())
             np.save(str(path), element_matrix, allow_pickle=False)
 
     def _extract_elements_from_batch(self, index, batch_size, batch, example_indices):
         upper_limit, lower_limit = (index + 1) * batch_size, index * batch_size
         batch_indices = [ind for ind in example_indices if lower_limit <= ind < upper_limit]
+
+        assert len(batch_indices) == 0 or max(batch_indices) - lower_limit < len(
+            batch), f"ElementGenerator: Found batch of size {len(batch)}, but expected {batch_size}. " \
+                    f"Are the batch files sorted correctly? All files except the last file must have batch size {batch_size}."
+
         elements = [batch[i - lower_limit] for i in batch_indices]
         return elements

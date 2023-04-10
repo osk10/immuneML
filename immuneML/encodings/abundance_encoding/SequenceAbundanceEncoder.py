@@ -74,7 +74,8 @@ class SequenceAbundanceEncoder(DatasetEncoder):
     RELEVANT_SEQUENCE_ABUNDANCE = "relevant_sequence_abundance"
     TOTAL_SEQUENCE_ABUNDANCE = "total_sequence_abundance"
 
-    def __init__(self, comparison_attributes, p_value_threshold: float, sequence_batch_size: int, repertoire_batch_size: int, name: str = None):
+    def __init__(self, comparison_attributes, p_value_threshold: float, sequence_batch_size: int,
+                 repertoire_batch_size: int, name: str = None):
         self.comparison_attributes = comparison_attributes
         self.sequence_batch_size = sequence_batch_size
         self.name = name
@@ -90,7 +91,8 @@ class SequenceAbundanceEncoder(DatasetEncoder):
 
     @staticmethod
     def build_object(dataset, **params):
-        assert isinstance(dataset, RepertoireDataset), "SequenceAbundanceEncoder: this encoding only works on repertoire datasets."
+        assert isinstance(dataset,
+                          RepertoireDataset), "SequenceAbundanceEncoder: this encoding only works on repertoire datasets."
         return SequenceAbundanceEncoder(**params)
 
     def encode(self, dataset, params: EncoderParams):
@@ -116,26 +118,40 @@ class SequenceAbundanceEncoder(DatasetEncoder):
 
         examples = self._calculate_abundance_matrix(dataset, self.comparison_data, params)
 
-        encoded_data = EncodedData(examples, dataset.get_metadata([label_name]) if params.encode_labels else None, dataset.get_repertoire_ids(),
-                                   [SequenceAbundanceEncoder.RELEVANT_SEQUENCE_ABUNDANCE, SequenceAbundanceEncoder.TOTAL_SEQUENCE_ABUNDANCE],
-                                   encoding=SequenceAbundanceEncoder.__name__, info={'relevant_sequence_path': self.relevant_sequence_path,
-                                                                                     "contingency_table_path": self.contingency_table_path,
-                                                                                     "p_values_path": self.p_values_path})
+        encoded_data = EncodedData(examples, dataset.get_metadata([label_name]) if params.encode_labels else None,
+                                   dataset.get_repertoire_ids(),
+                                   [SequenceAbundanceEncoder.RELEVANT_SEQUENCE_ABUNDANCE,
+                                    SequenceAbundanceEncoder.TOTAL_SEQUENCE_ABUNDANCE],
+                                   encoding=SequenceAbundanceEncoder.__name__,
+                                   info={'relevant_sequence_path': self.relevant_sequence_path,
+                                         "contingency_table_path": self.contingency_table_path,
+                                         "p_values_path": self.p_values_path})
 
-        encoded_dataset = RepertoireDataset(labels=dataset.labels, encoded_data=encoded_data, repertoires=dataset.repertoires)
+        encoded_dataset = RepertoireDataset(labels=dataset.labels, encoded_data=encoded_data,
+                                            repertoires=dataset.repertoires)
 
         return encoded_dataset
 
-    def _calculate_abundance_matrix(self, dataset: RepertoireDataset, comparison_data: ComparisonData, params: EncoderParams):
+    def _calculate_abundance_matrix(self, dataset: RepertoireDataset, comparison_data: ComparisonData,
+                                    params: EncoderParams):
         comparison_data.set_iteration_repertoire_ids(dataset.get_repertoire_ids())
-        is_positive_class = AbundanceEncoderHelper.check_is_positive_class(dataset, dataset.get_repertoire_ids(), params.label_config)
+        is_positive_class = AbundanceEncoderHelper.check_is_positive_class(dataset, dataset.get_repertoire_ids(),
+                                                                           params.label_config)
 
-        relevant_sequence_indices, file_paths = AbundanceEncoderHelper.get_relevant_sequence_indices(comparison_data, is_positive_class, self.p_value_threshold, self.relevant_indices_path, params)
+        relevant_sequence_indices, file_paths = AbundanceEncoderHelper.get_relevant_sequence_indices(comparison_data,
+                                                                                                     is_positive_class,
+                                                                                                     self.p_value_threshold,
+                                                                                                     self.relevant_indices_path,
+                                                                                                     params,
+                                                                                                     cache_params=(
+                                                                                                     dataset.get_repertoire_ids(),
+                                                                                                     self.comparison_attributes))
 
         self._write_relevant_sequences_csv(comparison_data, relevant_sequence_indices, params.result_path)
         self._set_file_paths(file_paths)
 
-        abundance_matrix = self._build_abundance_matrix(comparison_data, dataset.get_repertoire_ids(), relevant_sequence_indices)
+        abundance_matrix = self._build_abundance_matrix(comparison_data, dataset.get_repertoire_ids(),
+                                                        relevant_sequence_indices)
 
         return abundance_matrix
 
@@ -151,7 +167,8 @@ class SequenceAbundanceEncoder(DatasetEncoder):
 
     def _set_file_paths(self, file_paths):
         self.relevant_indices_path = file_paths["relevant_indices_path"]
-        self.contingency_table_path = file_paths["contingency_table_path"] if "contingency_table_path" in file_paths else None
+        self.contingency_table_path = file_paths[
+            "contingency_table_path"] if "contingency_table_path" in file_paths else None
         self.p_values_path = file_paths["p_values_path"] if "p_values_path" in file_paths else None
 
     def _build_abundance_matrix(self, comparison_data, repertoire_ids, relevant_sequence_indices):

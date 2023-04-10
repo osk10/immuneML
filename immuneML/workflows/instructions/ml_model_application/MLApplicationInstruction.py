@@ -61,9 +61,11 @@ class MLApplicationInstruction(Instruction):
 
     """
 
-    def __init__(self, dataset: Dataset, label_configuration: LabelConfiguration, hp_setting: HPSetting, number_of_processes: int, name: str):
+    def __init__(self, dataset: Dataset, label_configuration: LabelConfiguration, hp_setting: HPSetting,
+                 number_of_processes: int, name: str):
 
-        self.state = MLApplicationState(dataset=dataset, hp_setting=hp_setting, label_config=label_configuration, pool_size=number_of_processes, name=name)
+        self.state = MLApplicationState(dataset=dataset, hp_setting=hp_setting, label_config=label_configuration,
+                                        pool_size=number_of_processes, name=name)
 
     def run(self, result_path: Path):
         self.state.path = PathBuilder.build(result_path / self.state.name)
@@ -73,7 +75,8 @@ class MLApplicationInstruction(Instruction):
         if self.state.hp_setting.preproc_sequence is not None:
             dataset = HPUtil.preprocess_dataset(dataset, self.state.hp_setting.preproc_sequence, self.state.path)
 
-        dataset = HPUtil.encode_dataset(dataset, self.state.hp_setting, self.state.path, learn_model=False, number_of_processes=self.state.pool_size,
+        dataset = HPUtil.encode_dataset(dataset, self.state.hp_setting, self.state.path, learn_model=False,
+                                        number_of_processes=self.state.pool_size,
                                         label_configuration=self.state.label_config, context={}, encode_labels=False)
 
         self._make_predictions(dataset)
@@ -89,13 +92,14 @@ class MLApplicationInstruction(Instruction):
         predictions_df = pd.DataFrame({"example_id": dataset.get_example_ids(), label.name: predictions[label.name]})
 
         if type(dataset) == RepertoireDataset:
-            predictions_df.insert(0, 'repertoire_file', [repertoire.data_filename.name for repertoire in dataset.get_data()])
+            predictions_df.insert(0, 'repertoire_file',
+                                  [repertoire.data_filename.name for repertoire in dataset.get_data()])
 
         if method.can_predict_proba():
-            classes = method.get_classes()
             predictions_proba = method.predict_proba(dataset.encoded_data, label)[label.name]
-            for cls_index, cls in enumerate(classes):
-                predictions_df[f'{label.name}_{cls}_proba'] = predictions_proba[:, cls_index]
+
+            for cls in method.get_classes():
+                predictions_df[f'{label.name}_{cls}_proba'] = predictions_proba[cls]
 
         self.state.predictions_path = self.state.path / "predictions.csv"
         predictions_df.to_csv(self.state.predictions_path, index=False)

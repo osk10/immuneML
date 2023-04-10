@@ -71,8 +71,10 @@ class AtchleyKmerMILClassifier(MLMethod):
     MIN_SEED_VALUE = 1
     MAX_SEED_VALUE = 100000
 
-    def __init__(self, iteration_count: int = None, threshold: float = None, evaluate_at: int = None, use_early_stopping: bool = None,
-                 random_seed: int = None, learning_rate: float = None, zero_abundance_weight_init: bool = None, number_of_threads: int = None,
+    def __init__(self, iteration_count: int = None, threshold: float = None, evaluate_at: int = None,
+                 use_early_stopping: bool = None,
+                 random_seed: int = None, learning_rate: float = None, zero_abundance_weight_init: bool = None,
+                 number_of_threads: int = None,
                  result_path: Path = None, initialization_count: int = None, pytorch_device_name: str = None):
         super().__init__()
         self.logistic_regression = None
@@ -92,13 +94,15 @@ class AtchleyKmerMILClassifier(MLMethod):
         self.pytorch_device_name = pytorch_device_name
 
     def _make_log_reg(self):
-        return PyTorchLogisticRegression(in_features=self.input_size, zero_abundance_weight_init=self.zero_abundance_weight_init)
+        return PyTorchLogisticRegression(in_features=self.input_size,
+                                         zero_abundance_weight_init=self.zero_abundance_weight_init)
 
     def fit(self, encoded_data: EncodedData, label: Label, cores_for_training: int = 2):
         self.feature_names = encoded_data.feature_names
 
         self.label = label
-        self.class_mapping = Util.make_binary_class_mapping(encoded_data.labels[self.label.name])
+        self.class_mapping = Util.make_binary_class_mapping(encoded_data.labels[self.label.name],
+                                                            self.label.positive_class)
 
         mapped_y = Util.map_to_new_class_values(encoded_data.labels[self.label.name], self.class_mapping)
         self.logistic_regression = None
@@ -107,7 +111,8 @@ class AtchleyKmerMILClassifier(MLMethod):
         for initialization in range(self.initialization_count):
 
             random.seed(self.random_seed)
-            random_seed = random.randint(AtchleyKmerMILClassifier.MIN_SEED_VALUE, AtchleyKmerMILClassifier.MAX_SEED_VALUE)
+            random_seed = random.randint(AtchleyKmerMILClassifier.MIN_SEED_VALUE,
+                                         AtchleyKmerMILClassifier.MAX_SEED_VALUE)
 
             Util.setup_pytorch(self.number_of_threads, random_seed, self.pytorch_device_name)
             self.input_size = encoded_data.examples.shape[1]
@@ -127,7 +132,8 @@ class AtchleyKmerMILClassifier(MLMethod):
                 # compute predictions only for k-mers with max score
                 max_logit_indices = self._get_max_logits_indices(encoded_data.examples, log_reg)
                 example_count = encoded_data.examples.shape[0]
-                examples = torch.from_numpy(encoded_data.examples).float()[torch.arange(example_count).long(), :, max_logit_indices]
+                examples = torch.from_numpy(encoded_data.examples).float()[torch.arange(example_count).long(), :,
+                           max_logit_indices]
                 logits = log_reg(examples)
 
                 # compute the loss
@@ -139,7 +145,8 @@ class AtchleyKmerMILClassifier(MLMethod):
 
                 # log current score and keep model for early stopping if specified
                 if iteration % self.evaluate_at == 0 or iteration == self.iteration_count - 1:
-                    logging.info(f"AtchleyKmerMILClassifier: log loss at iteration {iteration + 1}/{self.iteration_count}: {loss}.")
+                    logging.info(
+                        f"AtchleyKmerMILClassifier: log loss at iteration {iteration + 1}/{self.iteration_count}: {loss}.")
                     if state["loss"] < loss and self.use_early_stopping:
                         state = {"loss": loss.numpy(), "model": copy.deepcopy(log_reg)}
 
@@ -160,19 +167,23 @@ class AtchleyKmerMILClassifier(MLMethod):
             if log_reg:
                 logits = log_reg(torch.from_numpy(np.swapaxes(data, 1, 2).reshape(data.shape[0] * data.shape[2], -1)))
             else:
-                logits = self.logistic_regression(torch.from_numpy(np.swapaxes(data, 1, 2).reshape(data.shape[0] * data.shape[2], -1)))
+                logits = self.logistic_regression(
+                    torch.from_numpy(np.swapaxes(data, 1, 2).reshape(data.shape[0] * data.shape[2], -1)))
         logits = torch.reshape(logits, (data.shape[0], data.shape[2]))
         max_logits_indices = torch.argmax(logits, dim=1)
         return max_logits_indices.long()
 
     def predict(self, encoded_data: EncodedData, label: Label):
         predictions_proba = self.predict_proba(encoded_data, label)
-        return {label.name: [self.class_mapping[val] for val in (predictions_proba[label.name][:, 1] > 0.5).tolist()]}
+        return {label.name: [self.class_mapping[val] for val in
+                             (predictions_proba[label.name][label.positive_class] > 0.5).tolist()]}
 
-    def fit_by_cross_validation(self, encoded_data: EncodedData, number_of_splits: int = 5, label: Label = None, cores_for_training: int = -1,
+    def fit_by_cross_validation(self, encoded_data: EncodedData, number_of_splits: int = 5, label: Label = None,
+                                cores_for_training: int = -1,
                                 optimization_metric=None):
-        logging.warning(f"AtchleyKmerMILClassifier: fitting by cross validation is not implemented internally for the model, fitting without "
-                        f"cross-validation instead.")
+        logging.warning(
+            f"AtchleyKmerMILClassifier: fitting by cross validation is not implemented internally for the model, fitting without "
+            f"cross-validation instead.")
         self.fit(encoded_data, label)
 
     def store(self, path: Path, feature_names=None, details_path: Path = None):
@@ -180,7 +191,8 @@ class AtchleyKmerMILClassifier(MLMethod):
         torch.save(copy.deepcopy(self.logistic_regression).state_dict(), str(path / "log_reg.pt"))
         custom_vars = copy.deepcopy(vars(self))
 
-        coefficients_df = pd.DataFrame(custom_vars["logistic_regression"].linear.weight.detach().numpy(), columns=feature_names)
+        coefficients_df = pd.DataFrame(custom_vars["logistic_regression"].linear.weight.detach().numpy(),
+                                       columns=feature_names)
         coefficients_df["bias"] = custom_vars["logistic_regression"].linear.bias.detach().numpy()
         coefficients_df.to_csv(path / "coefficients.csv", index=False)
 
@@ -189,7 +201,7 @@ class AtchleyKmerMILClassifier(MLMethod):
         del custom_vars["label"]
 
         if self.label:
-            custom_vars["label"] = vars(self.label)
+            custom_vars["label"] = self.label.get_desc_for_storage()
 
         params_path = path / "custom_params.yaml"
         with params_path.open('w') as file:
@@ -223,9 +235,12 @@ class AtchleyKmerMILClassifier(MLMethod):
         example_count = encoded_data.examples.shape[0]
         max_logit_indices = self._get_max_logits_indices(encoded_data.examples)
         with torch.no_grad():
-            data = torch.from_numpy(encoded_data.examples).float()[torch.arange(example_count).long(), :, max_logit_indices]
+            data = torch.from_numpy(encoded_data.examples).float()[torch.arange(example_count).long(), :,
+                   max_logit_indices]
             predictions = torch.sigmoid(self.logistic_regression(data)).numpy()
-        return {label.name: np.vstack([1 - np.array(predictions), predictions]).T}
+
+        return {label.name: {label.positive_class: predictions,
+                             label.get_binary_negative_class(): 1 - predictions}}
 
     def get_label_name(self):
         return self.label.name

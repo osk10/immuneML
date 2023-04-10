@@ -18,7 +18,6 @@ from immuneML.environment.Constants import Constants
 from immuneML.environment.SequenceType import SequenceType
 from immuneML.util.EncoderHelper import EncoderHelper
 from immuneML.util.ParameterValidator import ParameterValidator
-from immuneML.util.PathBuilder import PathBuilder
 from immuneML.util.ReadsType import ReadsType
 from immuneML.util.ReflectionHandler import ReflectionHandler
 
@@ -100,7 +99,7 @@ class KmerFrequencyEncoder(DatasetEncoder):
                  k_left: int = 0, k_right: int = 0, min_gap: int = 0, max_gap: int = 0,
                  metadata_fields_to_include: list = None,
                  name: str = None, scale_to_unit_variance: bool = False, scale_to_zero_mean: bool = False,
-                 sequence_type: SequenceType = None, context: dict = None):
+                 sequence_type: SequenceType = None):
         self.normalization_type = normalization_type
         self.reads = reads
         self.sequence_encoding = sequence_encoding
@@ -116,11 +115,6 @@ class KmerFrequencyEncoder(DatasetEncoder):
         self.scale_to_zero_mean = scale_to_zero_mean
         self.scaler = None
         self.vectorizer = None
-        self.context = context
-
-    def set_context(self, context: dict):
-        self.context = context
-        return self
 
     @staticmethod
     def _prepare_parameters(normalization_type: str, reads: str, sequence_encoding: str, k: int = 0, k_left: int = 0,
@@ -135,7 +129,8 @@ class KmerFrequencyEncoder(DatasetEncoder):
                                                 location, "normalization_type")
         ParameterValidator.assert_in_valid_list(reads.upper(), [item.name for item in ReadsType], location, "reads")
         ParameterValidator.assert_in_valid_list(sequence_encoding.upper(), [item.name for item in SequenceEncodingType],
-                                                location, "sequence_encoding")
+                                                location,
+                                                "sequence_encoding")
         ParameterValidator.assert_type_and_value(scale_to_zero_mean, bool, location, "scale_to_zero_mean")
         ParameterValidator.assert_type_and_value(scale_to_unit_variance, bool, location, "scale_to_unit_variance")
         ParameterValidator.assert_type_and_value(sequence_type, str, location, 'sequence_type')
@@ -184,25 +179,7 @@ class KmerFrequencyEncoder(DatasetEncoder):
                                               lambda: {'vectorizer': self.vectorizer, 'scaler': self.scaler}, self,
                                               ['vectorizer', 'scaler'])
 
-        result_path = params.result_path / "encoding"
-        PathBuilder.build(result_path)
-        self.export_repertoire_tsv_files(result_path)
-
         return encoded_dataset
-
-    def export_repertoire_tsv_files(self, output_folder: Path):
-        repertoires = self.context["dataset"].repertoires
-
-        for repertoire in repertoires:
-            filepath = output_folder / f"{repertoire.identifier}.tsv"
-
-            # TODO: data structure from DeepRCEncoder.py, must be changed.. This is just to test usage.
-            if not filepath.is_file():
-                df = pd.DataFrame({self.sequence_encoding: repertoire.get_sequence_aas(),
-                                   "templates": repertoire.get_counts()})
-                df["templates"].fillna(1, inplace=True)
-
-                df.to_csv(path_or_buf=filepath, sep="\t", index=False)
 
     def _prepare_caching_params(self, dataset, params: EncoderParams, step: str = ""):
         return (("dataset_identifier", dataset.identifier),
@@ -228,14 +205,13 @@ class KmerFrequencyEncoder(DatasetEncoder):
             examples = normalized_examples
 
         feature_annotations = self._get_feature_annotations(feature_names, feature_annotation_names)
+
         encoded_data = EncodedData(examples=examples,
                                    labels=encoded_labels,
                                    feature_names=feature_names,
                                    example_ids=example_ids,
                                    feature_annotations=feature_annotations,
-                                   encoding=KmerFrequencyEncoder.__name__,
-                                   info={"metadata_filepath": dataset.metadata_file,
-                                         "dataset_filepath": params.result_path})
+                                   encoding=KmerFrequencyEncoder.__name__)
 
         return encoded_data
 

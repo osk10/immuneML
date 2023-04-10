@@ -25,27 +25,39 @@ class TestAtchleyKmerMILClassifier(TestCase):
         path = PathBuilder.build(EnvironmentSettings.tmp_test_path / "kmermil")
 
         repertoire_count = 10
-        dataset = RandomDatasetGenerator.generate_repertoire_dataset(repertoire_count=repertoire_count, sequence_count_probabilities={2: 1},
-                                                                     sequence_length_probabilities={4: 1}, labels={"l1": {True: 0.5, False: 0.5}},
+        dataset = RandomDatasetGenerator.generate_repertoire_dataset(repertoire_count=repertoire_count,
+                                                                     sequence_count_probabilities={2: 1},
+                                                                     sequence_length_probabilities={4: 1},
+                                                                     labels={"l1": {True: 0.5, False: 0.5}},
                                                                      path=path / "dataset")
-        enc_dataset = AtchleyKmerEncoder(2, 1, 1, 'relative_abundance', False).encode(dataset, EncoderParams(path / "result",
-                                                                                                             LabelConfiguration(
-                                                                                                                 [Label("l1", [True, False])])))
-        cls = AtchleyKmerMILClassifier(iteration_count=10, threshold=-0.0001, evaluate_at=2, use_early_stopping=False, random_seed=1, learning_rate=0.01,
-                                       zero_abundance_weight_init=True, number_of_threads=8, initialization_count=2, pytorch_device_name='cpu')
-        cls.fit(enc_dataset.encoded_data, Label("l1"))
+        enc_dataset = AtchleyKmerEncoder(2, 1, 1, 'relative_abundance', False).encode(dataset,
+                                                                                      EncoderParams(path / "result",
+                                                                                                    LabelConfiguration(
+                                                                                                        [Label("l1",
+                                                                                                               [True,
+                                                                                                                False])])))
+        cls = AtchleyKmerMILClassifier(iteration_count=10, threshold=-0.0001, evaluate_at=2, use_early_stopping=False,
+                                       random_seed=1, learning_rate=0.01,
+                                       zero_abundance_weight_init=True, number_of_threads=8, initialization_count=2,
+                                       pytorch_device_name='cpu')
+        cls.fit(enc_dataset.encoded_data, Label("l1", [True, False]))
 
-        predictions = cls.predict(enc_dataset.encoded_data, Label("l1"))
+        predictions = cls.predict(enc_dataset.encoded_data, Label("l1", [True, False]))
         self.assertEqual(repertoire_count, len(predictions["l1"]))
         self.assertEqual(repertoire_count, len([pred for pred in predictions["l1"] if isinstance(pred, bool)]))
 
-        predictions_proba = cls.predict_proba(enc_dataset.encoded_data, Label("l1"))
-        self.assertEqual(repertoire_count, np.rint(np.sum(predictions_proba["l1"])))
-        self.assertEqual(repertoire_count, predictions_proba["l1"].shape[0])
+        predictions_proba = cls.predict_proba(enc_dataset.encoded_data, Label("l1", [True, False]))
+
+        self.assertEqual(repertoire_count, predictions_proba["l1"][True].shape[0])
+        self.assertEqual(repertoire_count, predictions_proba["l1"][False].shape[0])
+        self.assertEqual([1] * repertoire_count, list(predictions_proba["l1"][True] + predictions_proba["l1"][False]))
+        self.assertListEqual(list(predictions_proba["l1"][True] > 0.5),
+                             [pred == True for pred in list(predictions["l1"])])
 
         cls.store(path / "model_storage", feature_names=enc_dataset.encoded_data.feature_names)
 
-        cls2 = AtchleyKmerMILClassifier(iteration_count=10, threshold=-0.0001, evaluate_at=2, use_early_stopping=False, random_seed=1, learning_rate=0.01,
+        cls2 = AtchleyKmerMILClassifier(iteration_count=10, threshold=-0.0001, evaluate_at=2, use_early_stopping=False,
+                                        random_seed=1, learning_rate=0.01,
                                         zero_abundance_weight_init=True, number_of_threads=8, initialization_count=1)
         cls2.load(path / "model_storage")
 

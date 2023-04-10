@@ -1,11 +1,11 @@
+import pickle
 import warnings
 from pathlib import Path
 from typing import List
 
-import pickle
+import numpy as np
 import pandas as pd
 import plotly.express as px
-import numpy as np
 
 from immuneML.data_model.dataset.RepertoireDataset import RepertoireDataset
 from immuneML.dsl.instruction_parsers.LabelHelper import LabelHelper
@@ -100,11 +100,13 @@ class SignificantFeatures(DataReport):
         if isinstance(self.dataset, RepertoireDataset):
             return True
         else:
-            warnings.warn(f"{SignificantFeatures.__name__}: report can be generated only from RepertoireDataset. Skipping this report...")
+            warnings.warn(
+                f"{SignificantFeatures.__name__}: report can be generated only from RepertoireDataset. Skipping this report...")
             return False
 
     def _generate(self) -> ReportResult:
-        self.label_config = LabelHelper.create_label_config([self.label], self.dataset, SignificantFeatures.__name__, f"{SignificantFeatures.__name__}/label")
+        self.label_config = LabelHelper.create_label_config([self.label], self.dataset, SignificantFeatures.__name__,
+                                                            f"{SignificantFeatures.__name__}/label")
 
         plotting_data = self._compute_plotting_data()
         table_result = self._write_results_table(plotting_data)
@@ -129,7 +131,8 @@ class SignificantFeatures(DataReport):
             encoder_name = SignificantFeaturesHelper._get_encoder_name(k)
 
             for p_value in self.p_values:
-                pos_class_feature_counts, neg_class_feature_counts = self._compute_significant_feature_counts(k, p_value)
+                pos_class_feature_counts, neg_class_feature_counts = self._compute_significant_feature_counts(k,
+                                                                                                              p_value)
                 n_examples = len(pos_class_feature_counts) + len(neg_class_feature_counts)
 
                 result["encoding"].extend([encoder_name] * n_examples)
@@ -143,7 +146,7 @@ class SignificantFeatures(DataReport):
     def _get_positive_negative_classes(self):
         label = self.label_config.get_label_objects()[0]
         positive_class = label.positive_class
-        negative_class = [value for value in label.values if value != positive_class][0]
+        negative_class = label.get_binary_negative_class()
 
         return positive_class, negative_class
 
@@ -178,11 +181,14 @@ class SignificantFeatures(DataReport):
         encoder_params = SignificantFeaturesHelper._build_encoder_params(self.label_config, encoder_result_path)
 
         if type(k) == int:
-            pos_class_feature_counts, neg_class_feature_counts = self._compute_significant_kmer_counts(k, p_value, encoder_params)
+            pos_class_feature_counts, neg_class_feature_counts = self._compute_significant_kmer_counts(k, p_value,
+                                                                                                       encoder_params)
         elif self.compairr_path is None:
-            pos_class_feature_counts, neg_class_feature_counts = self._compute_significant_sequence_counts(p_value, encoder_params)
+            pos_class_feature_counts, neg_class_feature_counts = self._compute_significant_sequence_counts(p_value,
+                                                                                                           encoder_params)
         else:
-            pos_class_feature_counts, neg_class_feature_counts = self._compute_significant_compairr_sequence_counts(p_value, encoder_params)
+            pos_class_feature_counts, neg_class_feature_counts = self._compute_significant_compairr_sequence_counts(
+                p_value, encoder_params)
 
         return pos_class_feature_counts, neg_class_feature_counts
 
@@ -202,17 +208,20 @@ class SignificantFeatures(DataReport):
         with encoder.relevant_indices_path.open("rb") as file:
             relevant_indices = pickle.load(file)
 
-        relevant_feature_presence = self._sum_sequence_vectors_iterable(relevant_indices, encoder.comparison_data.get_item_vectors())
+        relevant_feature_presence = self._sum_sequence_vectors_iterable(relevant_indices,
+                                                                        encoder.comparison_data.get_item_vectors())
 
         return self._get_positive_negative_class(relevant_feature_presence, self.dataset.get_repertoire_ids())
 
     def _compute_significant_compairr_sequence_counts(self, p_value, encoder_params):
-        encoder = SignificantFeaturesHelper._build_compairr_sequence_encoder(self.dataset, p_value, encoder_params, self.compairr_path)
+        encoder = SignificantFeaturesHelper._build_compairr_sequence_encoder(self.dataset, p_value, encoder_params,
+                                                                             self.compairr_path)
 
         with encoder.relevant_indices_path.open("rb") as file:
             relevant_indices = pickle.load(file)
 
-        relevant_feature_presence = self._sum_sequence_vectors_iterable(relevant_indices, encoder.compairr_sequence_presence)
+        relevant_feature_presence = self._sum_sequence_vectors_iterable(relevant_indices,
+                                                                        encoder.compairr_sequence_presence)
 
         return self._get_positive_negative_class(relevant_feature_presence, self.dataset.get_repertoire_ids())
 
@@ -241,7 +250,8 @@ class SignificantFeatures(DataReport):
         return relevant_feature_presence
 
     def _get_positive_negative_class(self, relevant_feature_presence, repertoire_ids):
-        is_positive_class = AbundanceEncoderHelper.check_is_positive_class(self.dataset, repertoire_ids, self.label_config)
+        is_positive_class = AbundanceEncoderHelper.check_is_positive_class(self.dataset, repertoire_ids,
+                                                                           self.label_config)
 
         pos_class_feature_counts = relevant_feature_presence[is_positive_class]
         neg_class_feature_counts = relevant_feature_presence[np.logical_not(is_positive_class)]

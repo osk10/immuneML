@@ -43,18 +43,18 @@ class GappedMotifImplanting(SequenceImplantingStrategy):
             motif_left = signal["motif_instance"].instance
             motif_right = ""
 
-        gap_start = position+len(motif_left)
-        gap_end = gap_start+gap_length
+        gap_start = position + len(motif_left)
+        gap_end = gap_start + gap_length
         part1 = sequence.get_sequence()[:position]
         part2 = sequence.get_sequence()[gap_start:gap_end]
-        part3 = sequence.get_sequence()[gap_end+len(motif_right):]
+        part3 = sequence.get_sequence()[gap_end + len(motif_right):]
 
         new_sequence_string = part1 + motif_left + part2 + motif_right + part3
 
         annotation = SequenceAnnotation()
         implant = ImplantAnnotation(signal_id=signal["signal_id"],
                                     motif_id=signal["motif_id"],
-                                    motif_instance=signal["motif_instance"],
+                                    motif_instance=str(signal["motif_instance"]),
                                     position=position)
         annotation.add_implant(implant)
 

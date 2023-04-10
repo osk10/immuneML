@@ -3,13 +3,12 @@ import pickle
 import fisher
 import numpy as np
 
-from immuneML.encodings.EncoderParams import EncoderParams
+from immuneML.caching.CacheHandler import CacheHandler
 from immuneML.environment.Label import Label
 from immuneML.environment.LabelConfiguration import LabelConfiguration
 
 
 class AbundanceEncoderHelper:
-
     INVALID_P_VALUE = 2.0
 
     @staticmethod
@@ -25,8 +24,9 @@ class AbundanceEncoderHelper:
             f"To use this encoder, in the label definition in the specification of the instruction, define " \
             f"the positive class for the label. See documentation for this encoder for more details."
 
-        assert len(label.values) == 2, f"{location}: only binary classification (2 classes) is possible when extracting " \
-                                       f"relevant sequences for the label, but got these classes for label {label.name} instead: {label.values}."
+        assert len(
+            label.values) == 2, f"{location}: only binary classification (2 classes) is possible when extracting " \
+                                f"relevant sequences for the label, but got these classes for label {label.name} instead: {label.values}."
 
     @staticmethod
     def check_is_positive_class(dataset, matrix_repertoire_ids, label_config: LabelConfiguration):
@@ -39,16 +39,25 @@ class AbundanceEncoderHelper:
         return is_positive_class
 
     @staticmethod
-    def get_relevant_sequence_indices(sequence_presence_iterator, is_positive_class, p_value_threshold, relevant_indices_path, params):
-        relevant_indices_path = relevant_indices_path if relevant_indices_path is not None else params.result_path / 'relevant_sequence_indices.pickle'
+    def get_relevant_sequence_indices(sequence_presence_iterator, is_positive_class, p_value_threshold,
+                                      relevant_indices_path, params,
+                                      cache_params=None):
+        relevant_indices_path = relevant_indices_path if relevant_indices_path is not None else params.result_path / 'relevant_sequence_indices' \
+                                                                                                                     '.pickle '
         file_paths = {"relevant_indices_path": relevant_indices_path}
 
         if params.learn_model:
-            contingency_table = AbundanceEncoderHelper._get_contingency_table(sequence_presence_iterator, is_positive_class)
-            p_values = AbundanceEncoderHelper._find_sequence_p_values_with_fisher(contingency_table)
+            contingency_table = CacheHandler.memo_by_params(
+                ('cache_params', cache_params, ('type', 'contingency_table')),
+                lambda: AbundanceEncoderHelper._get_contingency_table(sequence_presence_iterator,
+                                                                      is_positive_class))
+            p_values = CacheHandler.memo_by_params((('cache_params', cache_params), ("type", "fisher_p_values")),
+                                                   lambda: AbundanceEncoderHelper._find_sequence_p_values_with_fisher(
+                                                       contingency_table))
             relevant_sequence_indices = p_values < p_value_threshold
 
-            file_paths["contingency_table_path"] = AbundanceEncoderHelper._write_contingency_table(contingency_table, params.result_path)
+            file_paths["contingency_table_path"] = AbundanceEncoderHelper._write_contingency_table(contingency_table,
+                                                                                                   params.result_path)
             file_paths["p_values_path"] = AbundanceEncoderHelper._write_p_values(p_values, params.result_path)
 
             with relevant_indices_path.open("wb") as file:
@@ -83,7 +92,6 @@ class AbundanceEncoderHelper:
         else:
             return AbundanceEncoderHelper.INVALID_P_VALUE
 
-
     @staticmethod
     def _write_contingency_table(contingency_table, result_path):
         contingency_table_path = result_path / 'contingency_table.csv'
@@ -102,13 +110,15 @@ class AbundanceEncoderHelper:
         return p_values_path
 
     @staticmethod
-    def build_abundance_matrix(sequence_presence_matrix, matrix_repertoire_ids, dataset_repertoire_ids, sequence_p_values_indices):
+    def build_abundance_matrix(sequence_presence_matrix, matrix_repertoire_ids, dataset_repertoire_ids,
+                               sequence_p_values_indices):
         abundance_matrix = np.zeros((len(dataset_repertoire_ids), 2))
 
         for idx_in_dataset, dataset_repertoire_id in enumerate(dataset_repertoire_ids):
             relevant_row = np.where(matrix_repertoire_ids == dataset_repertoire_id)
             repertoire_vector = sequence_presence_matrix.T[relevant_row]
-            relevant_sequence_abundance = np.sum(repertoire_vector[np.logical_and(sequence_p_values_indices, repertoire_vector)])
+            relevant_sequence_abundance = np.sum(
+                repertoire_vector[np.logical_and(sequence_p_values_indices, repertoire_vector)])
             total_sequence_abundance = np.sum(repertoire_vector)
             abundance_matrix[idx_in_dataset] = [relevant_sequence_abundance, total_sequence_abundance]
 

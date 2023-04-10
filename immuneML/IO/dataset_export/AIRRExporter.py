@@ -44,7 +44,8 @@ class AIRRExporter(DataExporter):
             repertoire_path = PathBuilder.build(path / repertoire_folder)
 
             with Pool(processes=number_of_processes) as pool:
-                pool.starmap(AIRRExporter.export_repertoire, [(repertoire, repertoire_path) for repertoire in dataset.repertoires])
+                pool.starmap(AIRRExporter.export_repertoire,
+                             [(repertoire, repertoire_path) for repertoire in dataset.repertoires])
 
             AIRRExporter.export_updated_metadata(dataset, path, repertoire_folder)
         else:
@@ -89,7 +90,8 @@ class AIRRExporter(DataExporter):
     def export_updated_metadata(dataset: RepertoireDataset, result_path: Path, repertoire_folder: str):
         df = pd.read_csv(dataset.metadata_file, comment=Constants.COMMENT_SIGN)
         identifiers = df["identifier"].values.tolist() if "identifier" in df.columns else dataset.get_example_ids()
-        df["filename"] = [str(Path(repertoire_folder) / f"{repertoire.data_filename.stem}.tsv") for repertoire in dataset.get_data()]
+        df["filename"] = [str(Path(repertoire_folder) / f"{repertoire.data_filename.stem}.tsv") for repertoire in
+                          dataset.get_data()]
         df['identifier'] = identifiers
         df.to_csv(result_path / "metadata.csv", index=False)
 
@@ -107,15 +109,21 @@ class AIRRExporter(DataExporter):
         region_type = repertoire.get_region_type()
 
         # rename mandatory fields for airr-compliance
-        mapper = {"sequence_identifiers": "sequence_id", "v_alleles": "v_call", "j_alleles": "j_call", "chains": "locus", "counts": "duplicate_count",
-                  "sequences": AIRRExporter.get_sequence_field(region_type), "sequence_aas": AIRRExporter.get_sequence_aa_field(region_type)}
+        mapper = {"sequence_identifiers": "sequence_id", "v_alleles": "v_call", "j_alleles": "j_call",
+                  "chains": "locus", "counts": "duplicate_count",
+                  "sequences": AIRRExporter.get_sequence_field(region_type),
+                  "sequence_aas": AIRRExporter.get_sequence_aa_field(region_type)}
 
         df = df.rename(mapper=mapper, axis="columns")
+
+        df.drop(columns=["v_genes", "j_genes", "v_subgroups", "j_subgroups"], inplace=True, errors='ignore')
+
         return df
 
     @staticmethod
     def _receptors_to_dataframe(receptors: List[Receptor]):
-        sequences = [(receptor.get_chain(receptor.get_chains()[0]), receptor.get_chain(receptor.get_chains()[1])) for receptor in receptors]
+        sequences = [(receptor.get_chain(receptor.get_chains()[0]), receptor.get_chain(receptor.get_chains()[1])) for
+                     receptor in receptors]
         sequences = [item for sublist in sequences for item in sublist]
         receptor_ids = [(receptor.identifier, receptor.identifier) for receptor in receptors]
         receptor_ids = [item for sublist in receptor_ids for item in sublist]
@@ -139,7 +147,8 @@ class AIRRExporter(DataExporter):
         sequence_aa_field = AIRRExporter.get_sequence_aa_field(region_type)
 
         main_data_dict = {"sequence_id": [], sequence_field: [], sequence_aa_field: []}
-        attributes_dict = {"chain": [], "v_allele": [], 'v_gene': [], "j_allele": [], 'j_gene': [], "count": [], "cell_id": [], "frame_type": []}
+        attributes_dict = {"chain": [], "v_allele": [], 'v_gene': [], "j_allele": [], 'j_gene': [], "count": [],
+                           "cell_id": [], "frame_type": []}
 
         for i, sequence in enumerate(sequences):
             main_data_dict["sequence_id"].append(sequence.identifier)
@@ -164,8 +173,10 @@ class AIRRExporter(DataExporter):
         df = pd.DataFrame({**attributes_dict, **main_data_dict})
 
         AIRRExporter.update_gene_columns(df, 'allele', 'gene')
-        df.rename(columns={"v_allele": "v_call", "j_allele": "j_call", "chain": "locus", "count": "duplicate_count", "frame_type": "frame_types"},
+        df.rename(columns={"v_allele": "v_call", "j_allele": "j_call", "chain": "locus", "count": "duplicate_count",
+                           "frame_type": "frame_types"},
                   inplace=True)
+        df.drop(columns=['v_gene', 'j_gene'], inplace=True, errors='ignore')
 
         return df
 
@@ -173,8 +184,9 @@ class AIRRExporter(DataExporter):
     def update_gene_columns(df, allele_name, gene_name):
         for index, row in df.iterrows():
             for gene in ['v', 'j']:
-                if NumpyHelper.is_nan_or_empty(row[f"{gene}_{allele_name}"]) and not NumpyHelper.is_nan_or_empty(row[f"{gene}_{gene_name}"]):
-                    df[f"{gene}_{allele_name}"][index] = row[f"{gene}_{gene_name}"]
+                if NumpyHelper.is_nan_or_empty(row[f"{gene}_{allele_name}"]) and not NumpyHelper.is_nan_or_empty(
+                        row[f"{gene}_{gene_name}"]):
+                    df.at[index, f"{gene}_{allele_name}"] = row[f"{gene}_{gene_name}"]
 
     @staticmethod
     def _postprocess_dataframe(df):
@@ -192,13 +204,22 @@ class AIRRExporter(DataExporter):
             df["stop_codon"] = df["frame_types"] == SequenceFrameType.STOP.name
             df.loc[df["frame_types"].isnull(), "stop_codon"] = ''
 
-            df.drop(columns=["frame_types"])
+            df.drop(columns=["frame_types"], inplace=True, errors='ignore')
 
         if "region_types" in df.columns:
-            df.drop(columns=["region_types"])
+            df.drop(columns=["region_types"], inplace=True, errors='ignore')
+
+        columns = [col for col in df.columns[df.dtypes == 'object'] if col not in
+                   ['cdr3_aa', 'cdr3', 'sequence', 'sequence_aa', 'v_call', 'j_call', 'locus', 'sequence_id',
+                    'productive', 'vj_in_frame',
+                    'stop_codon', "cell_id", "d_call", "duplicate_count"]]
+        for col in columns:
+            if df[col].str.contains('signal_id').values.any():
+                df[col] = df[col] != ''
 
         return df
 
     @staticmethod
     def _enums_to_strings(df, field):
-        df.loc[:, field] = [field_value.value if isinstance(field_value, Enum) else field_value for field_value in df.loc[:, field]]
+        df.loc[:, field] = [field_value.value if isinstance(field_value, Enum) else field_value for field_value in
+                            df.loc[:, field]]

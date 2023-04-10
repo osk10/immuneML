@@ -12,7 +12,8 @@ from immuneML.util.NumpyHelper import NumpyHelper
 
 
 class ReceptorSequence(DatasetItem):
-    FIELDS = {'amino_acid_sequence': str, 'nucleotide_sequence': str, 'identifier': str, 'metadata': dict, 'annotation': dict, 'version': str}
+    FIELDS = {'amino_acid_sequence': str, 'nucleotide_sequence': str, 'identifier': str, 'metadata': dict,
+              'annotation': dict, 'version': str}
     version = "1"
 
     @classmethod
@@ -20,8 +21,10 @@ class ReceptorSequence(DatasetItem):
         if 'version' in record.dtype.names and record['version'] == cls.version:
             return ReceptorSequence(**{**{key: record[key] for key, val_type in ReceptorSequence.FIELDS.items()
                                           if val_type == str and key != 'version'},
-                                       **{'metadata': SequenceMetadata(**json.loads(record['metadata'])) if record['metadata'] != '' else None,
-                                          'annotation': SequenceAnnotation(**json.loads(record['annotation'])) if record['annotation'] != ''
+                                       **{'metadata': SequenceMetadata(**json.loads(record['metadata'])) if record[
+                                                                                                                'metadata'] != '' else None,
+                                          'annotation': SequenceAnnotation(**json.loads(record['annotation'])) if
+                                          record['annotation'] != ''
                                           else None}})
         else:
             raise NotImplementedError
@@ -41,6 +44,11 @@ class ReceptorSequence(DatasetItem):
         self.nucleotide_sequence = nucleotide_sequence
         self.annotation = annotation
         self.metadata = metadata
+
+    def __repr__(self):
+        return f"ReceptorSequence(sequence_aa={self.amino_acid_sequence}, sequence={self.nucleotide_sequence}, " \
+               f"annotation={vars(self.annotation) if self.annotation is not None else '{}'}, " \
+               f"metadata={vars(self.metadata) if self.metadata is not None else '{}'})"
 
     def set_metadata(self, metadata: SequenceMetadata):
         self.metadata = metadata
@@ -66,7 +74,8 @@ class ReceptorSequence(DatasetItem):
 
     def get_record(self):
         """exports the sequence object as a numpy record"""
-        return [NumpyHelper.get_numpy_representation(getattr(self, name)) if hasattr(self, name) else getattr(ReceptorSequence, name)
+        return [NumpyHelper.get_numpy_representation(getattr(self, name)) if hasattr(self, name) else getattr(
+            ReceptorSequence, name)
                 for name in ReceptorSequence.FIELDS.keys()]
 
     def get_attribute(self, name: str):
