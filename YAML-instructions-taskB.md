@@ -1,4 +1,7 @@
 # YAML - Task B
+**For more in depth documentation (without tool):**
+* https://docs.immuneml.uio.no/latest/tutorials/how_to_specify_an_analysis_with_yaml.html?highlight=yaml
+* https://docs.immuneml.uio.no/latest/specification.html
 
 The YAML specification defines which analysis should be performed by immuneML. It is defined under four main keywords:
 
@@ -33,6 +36,7 @@ output: # how to present the result after running (the only valid option now)
   format: HTML
 tools: # optional keyword - present if tools are used
    my_ml_tool: # user-defined name of the tool
+      path: # path to the connection script
       type: MLMethodTool # type of tool (the only valid option now)
       params: # optional keyword - present if the tool requires params
 ```
