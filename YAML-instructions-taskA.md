@@ -1,7 +1,7 @@
 # YAML - Task A
 **For more in depth documentation:**
-https://docs.immuneml.uio.no/latest/tutorials/how_to_specify_an_analysis_with_yaml.html?highlight=yaml
-https://docs.immuneml.uio.no/latest/specification.html
+* https://docs.immuneml.uio.no/latest/tutorials/how_to_specify_an_analysis_with_yaml.html?highlight=yaml
+* https://docs.immuneml.uio.no/latest/specification.html
 
 The YAML specification defines which analysis should be performed by immuneML. It is defined under three main keywords:
 
