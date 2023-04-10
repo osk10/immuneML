@@ -275,4 +275,5 @@ class MLMethod(metaclass=abc.ABCMeta):
 
     def get_positive_class(self):
         """The get_positive_class function returns the positive class for which the method was trained."""
+        a = self.label.positive_class
         return self.label.positive_class

@@ -61,3 +61,6 @@ class MLMethodTool(MLMethod):
         from immuneML.encodings.kmer_frequency.KmerFrequencyEncoder import KmerFrequencyEncoder
 
         return [KmerFrequencyEncoder]
+
+    def get_positive_class(self):
+        return True

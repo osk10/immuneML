@@ -10,12 +10,15 @@ regex
 tzlocal
 airr>=1,<1.4
 fishersapi
-pystache
+pystache~=0.6.0
 torch>=1.5.1
 dill>=0.3
 tensorboard>=1.14.0
 plotly>=4
 logomaker>=0.8
 matplotlib-venn>=0.11
-scipy
+scipy~=1.9.3
 Cython
+
+pyzmq~=24.0.1
+psutil~=5.9.4
