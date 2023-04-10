@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from immuneML.dsl.symbol_table.SymbolTable import SymbolTable
 from immuneML.dsl.symbol_table.SymbolType import SymbolType
 from immuneML.tool_interface import InterfaceController
@@ -29,6 +31,10 @@ class ToolParser:
         # check that all required parameters are present
         ParameterValidator.assert_keys_present(list(tool_item.keys()), ["type", "path"], ToolParser.__name__,
                                                key)
+
+        # change from string to Path
+        tool_item["path"] = Path(tool_item["path"])
+        ParameterValidator.assert_type_and_value(tool_item["path"], Path, ToolParser.__name__, "path")
 
         # check that the value of type is valid
         valid_types = ["MLMethodTool"]
