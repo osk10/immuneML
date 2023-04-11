@@ -24,16 +24,20 @@ class TestHealthySequenceImplanting(TestCase):
 
     def _make_baseline_repertoire(self, path):
         return Repertoire.build_from_sequence_objects(
-            [ReceptorSequence(amino_acid_sequence="ACDFQ", identifier="1", metadata=SequenceMetadata(region_type="IMGT_CDR3")),
-             ReceptorSequence(amino_acid_sequence="TGCDF", identifier="2", metadata=SequenceMetadata(region_type="IMGT_CDR3")),
-             ReceptorSequence(amino_acid_sequence="AAAAA", identifier="3", metadata=SequenceMetadata(region_type="IMGT_CDR3"))],
+            [ReceptorSequence(amino_acid_sequence="ACDFQ", identifier="1",
+                              metadata=SequenceMetadata(region_type="IMGT_CDR3")),
+             ReceptorSequence(amino_acid_sequence="TGCDF", identifier="2",
+                              metadata=SequenceMetadata(region_type="IMGT_CDR3")),
+             ReceptorSequence(amino_acid_sequence="AAAAA", identifier="3",
+                              metadata=SequenceMetadata(region_type="IMGT_CDR3"))],
             path=path, metadata={"subject_id": "1"})
 
     def test_implant_in_repertoire(self):
         path = PathBuilder.build(EnvironmentSettings.tmp_test_path / "healthysequenceimplanting/")
 
         repertoire = self._make_baseline_repertoire(path)
-        implanting = HealthySequenceImplanting(GappedMotifImplanting(), implanting_computation=ImplantingComputation.ROUND)
+        implanting = HealthySequenceImplanting(GappedMotifImplanting(),
+                                               implanting_computation=ImplantingComputation.ROUND)
         signal = Signal("1", [Motif("m1", GappedKmerInstantiation(), "CCC")], implanting)
 
         repertoire2 = implanting.implant_in_repertoire(repertoire, 0.33, signal, path)
@@ -47,7 +51,8 @@ class TestHealthySequenceImplanting(TestCase):
         shutil.rmtree(path)
 
     def test_implant_in_sequence(self):
-        implanting = HealthySequenceImplanting(GappedMotifImplanting(), implanting_computation=ImplantingComputation.ROUND)
+        implanting = HealthySequenceImplanting(GappedMotifImplanting(),
+                                               implanting_computation=ImplantingComputation.ROUND)
         signal = Signal("1", [Motif("m1", GappedKmerInstantiation(), "CCC")], implanting)
         sequence = ReceptorSequence(amino_acid_sequence="ACDFQ", metadata=SequenceMetadata(region_type="IMGT_CDR3"))
         sequence2 = implanting.implant_in_sequence(sequence, signal)

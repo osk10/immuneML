@@ -113,7 +113,8 @@ class TestSignificantFeatures(TestCase):
 
         result_output = pd.read_csv(path / "recovered_significant_features_report.csv", sep=",")
 
-        self.assertListEqual(list(result_output.columns), ["encoding", "p-value", "n_significant", "n_true", "n_intersect"])
+        self.assertListEqual(list(result_output.columns),
+                             ["encoding", "p-value", "n_significant", "n_true", "n_intersect"])
         self.assertListEqual(list(result_output["encoding"]), ["full_sequence"] * 2 + ["3-mer"] * 2)
         self.assertListEqual(list(result_output["p-value"]), [0.5, 0., 0.5, 0.])
         self.assertListEqual(list(result_output["n_significant"]), [2, 0] * 2)

@@ -12,7 +12,8 @@ class ElementDataset(Dataset):
     these two classes is whether paired or single chain data is stored.
     """
 
-    def __init__(self, labels: dict = None, encoded_data: EncodedData = None, filenames: list = None, identifier: str = None,
+    def __init__(self, labels: dict = None, encoded_data: EncodedData = None, filenames: list = None,
+                 identifier: str = None,
                  file_size: int = 50000, name: str = None, element_class_name: str = None, element_ids: list = None):
         super().__init__()
         self.labels = labels
@@ -64,15 +65,18 @@ class ElementDataset(Dataset):
             a new dataset object (ReceptorDataset or SequenceDataset, as the original dataset) which includes only the examples specified under example_indices
 
         """
-        new_dataset = self.__class__(labels=self.labels, file_size=self.file_size, element_class_name=self.element_generator.element_class_name)
-        batch_filenames = self.element_generator.make_subset(example_indices, path, dataset_type, new_dataset.identifier)
+        new_dataset = self.__class__(labels=self.labels, file_size=self.file_size,
+                                     element_class_name=self.element_generator.element_class_name)
+        batch_filenames = self.element_generator.make_subset(example_indices, path, dataset_type,
+                                                             new_dataset.identifier)
         new_dataset.set_filenames(batch_filenames)
         new_dataset.name = f"{self.name}_split_{dataset_type.lower()}"
         return new_dataset
 
     def get_label_names(self):
         """Returns the list of metadata fields which can be used as labels"""
-        return [label for label in list(self.labels.keys()) if label not in ['region_type', 'receptor_chains', 'organism']]
+        return [label for label in list(self.labels.keys()) if
+                label not in ['region_type', 'receptor_chains', 'organism']]
 
     def clone(self, keep_identifier: bool = False):
         raise NotImplementedError

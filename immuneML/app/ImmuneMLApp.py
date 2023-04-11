@@ -1,7 +1,6 @@
 import argparse
 import logging
 import os
-import random
 import shutil
 import warnings
 from pathlib import Path
@@ -12,6 +11,7 @@ from immuneML.dsl.semantic_model.SemanticModel import SemanticModel
 from immuneML.dsl.symbol_table.SymbolType import SymbolType
 from immuneML.environment.Constants import Constants
 from immuneML.environment.EnvironmentSettings import EnvironmentSettings
+from immuneML.tool_interface import InterfaceController
 from immuneML.util.Logger import print_log
 from immuneML.util.PathBuilder import PathBuilder
 from immuneML.util.ReflectionHandler import ReflectionHandler
@@ -52,6 +52,7 @@ class ImmuneMLApp:
         result = model.run()
 
         self.clear_cache()
+        InterfaceController.stop_all_tools()
 
         print_log(f"ImmuneML: finished analysis.\n", include_datetime=True)
 
@@ -75,6 +76,7 @@ def run_immuneML(namespace: argparse.Namespace):
         app = app_cls(**vars(namespace))
 
     app.run()
+    InterfaceController.stop_all_tools()
 
 
 def main():
@@ -89,10 +91,7 @@ def main():
 
     namespace = parser.parse_args()
     namespace.specification_path = Path(namespace.specification_path)
-    # namespace.result_path = Path(namespace.result_path)
-
-    # TODO: remove. For testing, create unique result path everytime
-    namespace.result_path = "../../results/quickstart_results" + str(random.randint(0, 10000))
+    namespace.result_path = Path(namespace.result_path)
 
     run_immuneML(namespace)
 

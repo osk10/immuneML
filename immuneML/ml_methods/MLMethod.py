@@ -1,8 +1,6 @@
 import abc
 from pathlib import Path
 
-from sklearn.exceptions import NotFittedError
-
 from immuneML.data_model.encoded_data.EncodedData import EncodedData
 from immuneML.environment import Label
 
@@ -27,6 +25,7 @@ class MLMethod(metaclass=abc.ABCMeta):
     py:`immuneML.ml_methods.util.Util.Util.make_class_mapping` method that will automatically create class mapping for classification.
 
     """
+
     def __init__(self):
         self.name = None
         self.label = None
@@ -82,7 +81,8 @@ class MLMethod(metaclass=abc.ABCMeta):
         pass
 
     @abc.abstractmethod
-    def fit_by_cross_validation(self, encoded_data: EncodedData, number_of_splits: int = 5, label: Label = None, cores_for_training: int = -1,
+    def fit_by_cross_validation(self, encoded_data: EncodedData, number_of_splits: int = 5, label: Label = None,
+                                cores_for_training: int = -1,
                                 optimization_metric=None):
         """
         The fit_by_cross_validation function should implement finding the best model hyperparameters through cross-validation. In immuneML,
@@ -181,11 +181,6 @@ class MLMethod(metaclass=abc.ABCMeta):
         pass
 
     @abc.abstractmethod
-    def get_classes(self) -> list:
-        """The get_classes function returns a list of classes for which the method was trained."""
-        pass
-
-    @abc.abstractmethod
     def get_params(self):
         """Returns the model parameters in a readable yaml-friendly way (consisting of lists, dictionaries and strings)."""
         pass
@@ -196,9 +191,10 @@ class MLMethod(metaclass=abc.ABCMeta):
         The predict_proba function predicts class probabilities for the given label if the model supports probabilistic output. If not, it should
         raise a warning and return predicted classes without probabilities.
 
-        Note that when providing class probabilities the classes should have a specific (constant) order, and in case of binary classification, they
-        should be ordered so that the negative class comes first and the positive one comes second. For this handling classes, see
-        py:mod:`immuneML.ml_methods.util.Util.Util.make_binary_class_mapping` method that will automatically create class mapping for binary classification.
+        The function will return a nested dictionary. The key(s) of the outer dictionary represent the label name(s),
+        and the keys of the inner dictionary the class names of the respective label.
+        The utility function py:mod:`immuneML.ml_methods.util.Util.Util.make_binary_class_mapping` may be used to
+        handle mapping of class names to an internal representation for binary classification.
 
         Arguments:
 
@@ -213,10 +209,10 @@ class MLMethod(metaclass=abc.ABCMeta):
 
         Returns:
 
-            a dictionary where the key is the label name and the value a 2D numpy array with class probabilities of dimension
-            [number_of_examples x number_of_classes_for_label], for instance for label CMV where the class can be either True or False and there are
-            3 examples to predict the class probabilities for:
-            {CMV: [[0.2, 0.8], [0.55, 0.45], [0.98, 0.02]]}
+            a nested dictionary where the outer keys represent label names, inner keys represent class names for the respective
+            label, and innermost values are 1D numpy arrays with class probabilities.
+            For example for instance for label CMV where the class can be either True or False and there are
+            3 examples to predict the class probabilities for: {CMV: {True: [0.2, 0.55, 0.98], False: [0.8, 0.45, 0.02]}}
 
         """
         pass
@@ -269,8 +265,15 @@ class MLMethod(metaclass=abc.ABCMeta):
                 break
 
         if not is_valid:
-            raise ValueError(f"{encoder.__class__.__name__} is not compatible with ML Method {self.__class__.__name__}. "
-                             f"Please use one of the following encoders instead: {', '.join([enc_class.__name__ for enc_class in self.get_compatible_encoders()])}")
+            raise ValueError(
+                f"{encoder.__class__.__name__} is not compatible with ML Method {self.__class__.__name__}. "
+                f"Please use one of the following encoders instead: {', '.join([enc_class.__name__ for enc_class in self.get_compatible_encoders()])}")
 
     def get_classes(self):
+        """The get_classes function returns a list of classes for which the method was trained."""
         return self.label.values
+
+    def get_positive_class(self):
+        """The get_positive_class function returns the positive class for which the method was trained."""
+        a = self.label.positive_class
+        return self.label.positive_class

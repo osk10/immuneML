@@ -102,7 +102,8 @@ class TestSignificantKmerPositions(TestCase):
         self.assertListEqual(list(result_output.columns), ["encoding", "p-value", "imgt_position", "k-mer", "count"])
         self.assertListEqual(list(result_output["encoding"]), ["2-mer"] * 12 + ["3-mer"] * 10)
         self.assertListEqual(list(result_output["p-value"]), [1.] * 6 + [0.5] * 6 + [1.] * 5 + [0.5] * 5)
-        self.assertListEqual(list(result_output["imgt_position"]), [105, 105, 106, 106, 107, 116] * 2 + [105, 105, 106, 106, 107] * 2)
+        self.assertListEqual(list(result_output["imgt_position"]),
+                             [105, 105, 106, 106, 107, 116] * 2 + [105, 105, 106, 106, 107] * 2)
         self.assertListEqual(list(result_output["count"]), [1] * 22)
 
         shutil.rmtree(path)

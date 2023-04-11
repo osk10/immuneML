@@ -73,7 +73,8 @@ class OLGAImport(DataImport):
 
     @staticmethod
     def alternative_load_func(filepath, params):
-        return pd.read_csv(filepath, sep=params.separator, iterator=False, dtype=str, header=None, usecols=list(params.column_mapping.keys()),
+        return pd.read_csv(filepath, sep=params.separator, iterator=False, dtype=str, header=None,
+                           usecols=list(params.column_mapping.keys()),
                            names=list(params.column_mapping.values()))
 
     @staticmethod

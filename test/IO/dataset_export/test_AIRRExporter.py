@@ -35,7 +35,8 @@ class TestAIRRExporter(TestCase):
                             ReceptorSequence(amino_acid_sequence="GGG",
                                              nucleotide_sequence="GGTGGTGGT",
                                              identifier="receptor_2",
-                                             annotation=SequenceAnnotation(implants=[ImplantAnnotation('sig1', 'm1', "G", 1)]),
+                                             annotation=SequenceAnnotation(
+                                                 implants=[ImplantAnnotation('sig1', 'm1', "G", 1)]),
                                              metadata=SequenceMetadata(v_gene="TRAV2", v_allele="TRAV2*01",
                                                                        j_gene="TRAJ2",
                                                                        chain=Chain.ALPHA,
@@ -45,7 +46,8 @@ class TestAIRRExporter(TestCase):
                                                                        custom_params={"d_call": "TRAD2",
                                                                                       "custom_test": "cust2"}))]
 
-        repertoire = Repertoire.build_from_sequence_objects(sequence_objects=sequence_objects, path=path, metadata={"subject_id": "REP1"})
+        repertoire = Repertoire.build_from_sequence_objects(sequence_objects=sequence_objects, path=path,
+                                                            metadata={"subject_id": "REP1"})
         df = pd.DataFrame({"filename": [f"{repertoire.identifier}_data.npy"], "subject_id": ["1"],
                            "repertoire_identifier": [repertoire.identifier]})
         df.to_csv(path / "metadata.csv", index=False)
@@ -140,17 +142,20 @@ class TestAIRRExporter(TestCase):
 
     def create_dummy_sequencedataset(self, path):
         sequences = [ReceptorSequence(amino_acid_sequence="AAATTT", identifier="1a",
-                                      metadata=SequenceMetadata(v_gene="TRAV1", j_gene="TRAJ1", chain=Chain.ALPHA, frame_type="IN",
+                                      metadata=SequenceMetadata(v_gene="TRAV1", j_gene="TRAJ1", chain=Chain.ALPHA,
+                                                                frame_type="IN",
                                                                 region_type="IMGT_CDR3",
                                                                 custom_params={"d_call": "TRAD1",
                                                                                "custom1": "cust1"})),
                      ReceptorSequence(amino_acid_sequence="ATATAT", identifier="1b",
-                                      metadata=SequenceMetadata(v_gene="TRBV1", j_gene="TRBJ1", chain=Chain.BETA, frame_type="IN",
+                                      metadata=SequenceMetadata(v_gene="TRBV1", j_gene="TRBJ1", chain=Chain.BETA,
+                                                                frame_type="IN",
                                                                 region_type="IMGT_CDR3",
                                                                 custom_params={"d_call": "TRBD1",
                                                                                "custom2": "cust1"})),
                      ReceptorSequence(amino_acid_sequence="ATATAT", identifier="2b",
-                                      metadata=SequenceMetadata(v_gene="TRBV1", j_gene="TRBJ1", chain=Chain.BETA, frame_type="IN",
+                                      metadata=SequenceMetadata(v_gene="TRBV1", j_gene="TRBJ1", chain=Chain.BETA,
+                                                                frame_type="IN",
                                                                 region_type="IMGT_CDR3",
                                                                 custom_params={"d_call": "TRBD1",
                                                                                "custom2": "cust1"}))]

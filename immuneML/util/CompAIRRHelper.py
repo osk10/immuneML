@@ -52,10 +52,12 @@ class CompAIRRHelper:
         indels_args = ["-i"] if compairr_params.indels else []
         frequency_args = ["-f"] if compairr_params.ignore_counts else []
         ignore_genes = ["-g"] if compairr_params.ignore_genes else []
-        output_args = ["-o", str(result_path / compairr_params.output_filename), "-l", str(result_path / compairr_params.log_filename)]
+        output_args = ["-o", str(result_path / compairr_params.output_filename), "-l",
+                       str(result_path / compairr_params.log_filename)]
 
-        return [str(compairr_params.compairr_path), "-m", "-d", str(compairr_params.differences), "-t", str(compairr_params.threads)] + \
-               indels_args + frequency_args + ignore_genes + output_args + input_file_list
+        return [str(compairr_params.compairr_path), "-m", "-d", str(compairr_params.differences), "-t",
+                str(compairr_params.threads)] + \
+            indels_args + frequency_args + ignore_genes + output_args + input_file_list
 
     @staticmethod
     def write_repertoire_file(repertoire_dataset, filename, compairr_params):

@@ -2,14 +2,12 @@ import hashlib
 import warnings
 from pathlib import Path
 
-import h5py
 import numpy as np
 import pkg_resources
 import torch
 import yaml
 from sklearn.exceptions import NotFittedError
 from sklearn.model_selection import train_test_split
-from tqdm import tqdm
 
 from immuneML.caching.CacheHandler import CacheHandler
 from immuneML.data_model.encoded_data.EncodedData import EncodedData
@@ -99,7 +97,8 @@ class DeepRC(MLMethod):
     def __init__(self, validation_part, add_positional_information, kernel_size, n_kernels,
                  n_additional_convs, n_attention_network_layers, n_attention_network_units, n_output_network_units,
                  consider_seq_counts, sequence_reduction_fraction, reduction_mb_size, n_updates, n_torch_threads,
-                 learning_rate, l1_weight_decay, l2_weight_decay, evaluate_at, sample_n_sequences, training_batch_size, n_workers,
+                 learning_rate, l1_weight_decay, l2_weight_decay, evaluate_at, sample_n_sequences, training_batch_size,
+                 n_workers,
                  keep_dataset_in_ram, pytorch_device_name):
         super(DeepRC, self).__init__()
 
@@ -168,6 +167,8 @@ class DeepRC(MLMethod):
         return hdf5_filepath
 
     def _load_dataset_in_ram(self, hdf5_filepath: Path):
+        import h5py
+
         with h5py.File(str(hdf5_filepath), 'r') as hf:
             pre_loaded_hdf5_file = dict()
             pre_loaded_hdf5_file['seq_lens'] = hf['sampledata']['seq_lens'][:]
@@ -180,11 +181,13 @@ class DeepRC(MLMethod):
         """splits the data to training and validation and attempts to preserve the class distribution if possible"""
 
         indices = np.arange(0, n_examples)
-        train_indices, val_indices = train_test_split(indices, test_size=self.validation_part, shuffle=True, stratify=classes)
+        train_indices, val_indices = train_test_split(indices, test_size=self.validation_part, shuffle=True,
+                                                      stratify=classes)
 
         return train_indices, val_indices
 
-    def make_data_loader(self, hdf5_filepath: Path, pre_loaded_hdf5_file, indices, label_name, eval_only: bool, is_train: bool, n_workers=1):
+    def make_data_loader(self, hdf5_filepath: Path, pre_loaded_hdf5_file, indices, label_name, eval_only: bool,
+                         is_train: bool, n_workers=1):
         """
         Creates a pytorch dataloader using DeepRC's RepertoireDataReaderBinary
 
@@ -260,22 +263,29 @@ class DeepRC(MLMethod):
         hdf5_filepath = self._metadata_to_hdf5(encoded_data.info["metadata_filepath"], label_name)
         pre_loaded_hdf5_file = self._load_dataset_in_ram(hdf5_filepath) if self.keep_dataset_in_ram else None
 
-        train_indices, val_indices = self._get_train_val_indices(len(encoded_data.example_ids), encoded_data.labels[label_name])
+        train_indices, val_indices = self._get_train_val_indices(len(encoded_data.example_ids),
+                                                                 encoded_data.labels[label_name])
         self.max_seq_len = encoded_data.info["max_sequence_length"]
 
-        self._fit_for_label(hdf5_filepath, pre_loaded_hdf5_file, train_indices, val_indices, label_name, cores_for_training)
+        self._fit_for_label(hdf5_filepath, pre_loaded_hdf5_file, train_indices, val_indices, label_name,
+                            cores_for_training)
 
         return self.model
 
-    def _fit_for_label(self, hdf5_filepath: Path, pre_loaded_hdf5_file, train_indices, val_indices, label_name: str, cores_for_training: int):
+    def _fit_for_label(self, hdf5_filepath: Path, pre_loaded_hdf5_file, train_indices, val_indices, label_name: str,
+                       cores_for_training: int):
         from deeprc.deeprc_binary.architectures import DeepRC as DeepRCInternal
 
-        train_dataloader = self.make_data_loader(hdf5_filepath, pre_loaded_hdf5_file, train_indices, label_name, eval_only=False, is_train=True,
+        train_dataloader = self.make_data_loader(hdf5_filepath, pre_loaded_hdf5_file, train_indices, label_name,
+                                                 eval_only=False, is_train=True,
                                                  n_workers=self.n_workers)
-        train_eval_dataloader = self.make_data_loader(hdf5_filepath, pre_loaded_hdf5_file, train_indices, label_name, eval_only=True, is_train=True)
-        val_eval_dataloader = self.make_data_loader(hdf5_filepath, pre_loaded_hdf5_file, val_indices, label_name, eval_only=True, is_train=False)
+        train_eval_dataloader = self.make_data_loader(hdf5_filepath, pre_loaded_hdf5_file, train_indices, label_name,
+                                                      eval_only=True, is_train=True)
+        val_eval_dataloader = self.make_data_loader(hdf5_filepath, pre_loaded_hdf5_file, val_indices, label_name,
+                                                    eval_only=True, is_train=False)
 
-        self.model = DeepRCInternal(n_input_features=self.n_input_features, n_output_features=1, max_seq_len=self.max_seq_len,
+        self.model = DeepRCInternal(n_input_features=self.n_input_features, n_output_features=1,
+                                    max_seq_len=self.max_seq_len,
                                     kernel_size=self.kernel_size, consider_seq_counts=self.consider_seq_counts,
                                     n_kernels=self.n_kernels, n_additional_convs=self.n_additional_convs,
                                     n_attention_network_layers=self.n_attention_network_layers,
@@ -286,13 +296,17 @@ class DeepRC(MLMethod):
                                     sequence_reduction_fraction=self.sequence_reduction_fraction,
                                     reduction_mb_size=self.reduction_mb_size, device=self.pytorch_device)
 
-        self.training_function(self.model, trainingset_dataloader=train_dataloader, trainingset_eval_dataloader=train_eval_dataloader,
-                               validationset_eval_dataloader=val_eval_dataloader, results_directory=self.result_path / "deeprc_log",
-                               n_updates=self.n_updates, num_torch_threads=self.n_torch_threads, learning_rate=self.learning_rate,
+        self.training_function(self.model, trainingset_dataloader=train_dataloader,
+                               trainingset_eval_dataloader=train_eval_dataloader,
+                               validationset_eval_dataloader=val_eval_dataloader,
+                               results_directory=self.result_path / "deeprc_log",
+                               n_updates=self.n_updates, num_torch_threads=self.n_torch_threads,
+                               learning_rate=self.learning_rate,
                                l1_weight_decay=self.l1_weight_decay, l2_weight_decay=self.l2_weight_decay,
                                show_progress=False, device=self.pytorch_device, evaluate_at=self.evaluate_at)
 
-    def fit_by_cross_validation(self, encoded_data: EncodedData, number_of_splits: int = 5, label: Label = None, cores_for_training: int = -1,
+    def fit_by_cross_validation(self, encoded_data: EncodedData, number_of_splits: int = 5, label: Label = None,
+                                cores_for_training: int = -1,
                                 optimization_metric=None):
         warnings.warn("DeepRC: cross-validation on this classifier is not defined: fitting one model instead...")
         self.fit(encoded_data, label)
@@ -307,34 +321,31 @@ class DeepRC(MLMethod):
 
     def predict(self, encoded_data: EncodedData, label: Label):
         probabilities = self.predict_proba(encoded_data, label)
-        predictions = dict()
 
-        classes = self.get_classes()
-        pos_class_probs = probabilities[label.name][:, 0]
-        predictions[label.name] = [classes[0] if probability > 0.5 else classes[1] for probability in pos_class_probs]
+        pos_class_probs = probabilities[label.name][label.positive_class]
+        negative_class = label.get_binary_negative_class()
 
-        if label.positive_class is not None:
-            predictions[label.name] = [pred_class == label.positive_class for pred_class in predictions[label.name]]
-
-        return predictions
+        return {label.name: [label.positive_class if probability > 0.5 else negative_class for probability in
+                             pos_class_probs]}
 
     def predict_proba(self, encoded_data: EncodedData, label: Label):
         self.check_is_fitted(label.name)
 
-        probabilities = {}
-
         hdf5_filepath = self._metadata_to_hdf5(encoded_data.info["metadata_filepath"], label.name)
         pre_loaded_hdf5_file = self._load_dataset_in_ram(hdf5_filepath) if self.keep_dataset_in_ram else None
 
-        test_dataloader = self.make_data_loader(hdf5_filepath, pre_loaded_hdf5_file, indices=None, label_name=label.name, eval_only=True, is_train=False)
+        test_dataloader = self.make_data_loader(hdf5_filepath, pre_loaded_hdf5_file, indices=None,
+                                                label_name=label.name, eval_only=True, is_train=False)
 
         probs_pos_class = self._model_predict(self.model, test_dataloader)
-        probabilities[label.name] = np.vstack((probs_pos_class, 1 - probs_pos_class)).T
 
-        return probabilities
+        return {label.name: {label.positive_class: probs_pos_class,
+                             label.get_binary_negative_class(): 1 - probs_pos_class}}
 
     def _model_predict(self, model, dataloader):
         """Based on the DeepRC function evaluate (deeprc.deeprc_binary.training.evaluate)"""
+        from tqdm import tqdm
+
         with torch.no_grad():
             model.to(device=self.pytorch_device)
             scoring_predictions = []
@@ -398,7 +409,8 @@ class DeepRC(MLMethod):
                 "classes": self.get_classes()
             }
             if self.label is not None:
-                desc["label"] = vars(self.label)
+                desc["label"] = self.label.get_desc_for_storage()
+
             yaml.dump(desc, file)
 
     def check_if_exists(self, path):
@@ -407,7 +419,8 @@ class DeepRC(MLMethod):
         return file_path.is_file()
 
     def get_package_info(self) -> str:
-        return 'immuneML ' + Util.get_immuneML_version() + '; deepRC ' + pkg_resources.get_distribution('DeepRC').version
+        return 'immuneML ' + Util.get_immuneML_version() + '; deepRC ' + pkg_resources.get_distribution(
+            'DeepRC').version
 
     def get_feature_names(self) -> list:
         return self.feature_names

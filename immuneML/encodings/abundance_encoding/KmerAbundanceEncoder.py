@@ -78,9 +78,11 @@ class KmerAbundanceEncoder(DatasetEncoder):
         self.p_value_threshold = p_value_threshold
 
         self.kmer_frequency_params = {"normalization_type": NormalizationType.BINARY, "reads": ReadsType.UNIQUE,
-                                      "sequence_encoding": sequence_encoding, "k": k, "k_left": k_left, "k_right": k_right,
+                                      "sequence_encoding": sequence_encoding, "k": k, "k_left": k_left,
+                                      "k_right": k_right,
                                       "min_gap": min_gap, "max_gap": max_gap, "scale_to_unit_variance": False,
-                                      "scale_to_zero_mean": False, "sequence_type": EnvironmentSettings.get_sequence_type()}
+                                      "scale_to_zero_mean": False,
+                                      "sequence_type": EnvironmentSettings.get_sequence_type()}
 
         self.relevant_indices_path = None
         self.relevant_sequence_path = None
@@ -95,7 +97,8 @@ class KmerAbundanceEncoder(DatasetEncoder):
     @staticmethod
     def _prepare_parameters(p_value_threshold: float, sequence_encoding: str, k: int,
                             k_left: int, k_right: int, min_gap: int, max_gap: int, name: str = None):
-        ParameterValidator.assert_type_and_value(p_value_threshold, float, "KmerAbundanceEncoder", "p_value_threshold", min_inclusive=0,
+        ParameterValidator.assert_type_and_value(p_value_threshold, float, "KmerAbundanceEncoder", "p_value_threshold",
+                                                 min_inclusive=0,
                                                  max_inclusive=1)
 
         assert sequence_encoding.upper() != SequenceEncodingType.IDENTITY.name, "KmerAbundanceEncoder: sequence encoding type 'identity' is not a valid option for this encoder. To encode a dataset based on the presence or absence of complete sequences, please use SequenceAbundanceEncoder or CompAIRRSequenceAbundanceEncoder instead."
@@ -103,7 +106,8 @@ class KmerAbundanceEncoder(DatasetEncoder):
         kmerfreq_params = KmerFrequencyEncoder._prepare_parameters(normalization_type="binary", reads="unique",
                                                                    sequence_encoding=sequence_encoding,
                                                                    k=k, k_left=k_left, k_right=k_right, min_gap=min_gap,
-                                                                   max_gap=max_gap, sequence_type=EnvironmentSettings.get_sequence_type().name)
+                                                                   max_gap=max_gap,
+                                                                   sequence_type=EnvironmentSettings.get_sequence_type().name)
 
         return {
             "p_value_threshold": p_value_threshold,
@@ -118,7 +122,8 @@ class KmerAbundanceEncoder(DatasetEncoder):
 
     @staticmethod
     def build_object(dataset, **params):
-        assert isinstance(dataset, RepertoireDataset), "KmerAbundanceEncoder: this encoding only works on repertoire datasets."
+        assert isinstance(dataset,
+                          RepertoireDataset), "KmerAbundanceEncoder: this encoding only works on repertoire datasets."
         prepared_params = KmerAbundanceEncoder._prepare_parameters(**params)
         return KmerAbundanceEncoder(**prepared_params)
 
@@ -143,7 +148,8 @@ class KmerAbundanceEncoder(DatasetEncoder):
             lambda: self._compute_kmer_encoded_data(full_dataset, params))
 
     def _build_kmer_presence_params(self, dataset, kmer_frequency_params):
-        kmer_params = [(key, value) if not issubclass(type(value), Enum) else (key, value.value) for key, value in kmer_frequency_params.items()]
+        kmer_params = [(key, value) if not issubclass(type(value), Enum) else (key, value.value) for key, value in
+                       kmer_frequency_params.items()]
 
         return (("dataset_identifier", dataset.identifier),
                 ("repertoire_ids", tuple(dataset.get_repertoire_ids())),
@@ -166,9 +172,11 @@ class KmerAbundanceEncoder(DatasetEncoder):
     def _encode_data(self, dataset: RepertoireDataset, params: EncoderParams):
         label = params.label_config.get_label_objects()[0]
 
-        examples = self._calculate_abundance_matrix(dataset, self.kmer_presence_matrix, self.matrix_repertoire_ids, params)
+        examples = self._calculate_abundance_matrix(dataset, self.kmer_presence_matrix, self.matrix_repertoire_ids,
+                                                    params)
 
-        encoded_data = EncodedData(examples, dataset.get_metadata([label.name]) if params.encode_labels else None, dataset.get_repertoire_ids(),
+        encoded_data = EncodedData(examples, dataset.get_metadata([label.name]) if params.encode_labels else None,
+                                   dataset.get_repertoire_ids(),
                                    [KmerAbundanceEncoder.RELEVANT_SEQUENCE_ABUNDANCE,
                                     KmerAbundanceEncoder.TOTAL_SEQUENCE_ABUNDANCE],
                                    encoding=KmerAbundanceEncoder.__name__,
@@ -176,7 +184,8 @@ class KmerAbundanceEncoder(DatasetEncoder):
                                          "contingency_table_path": self.contingency_table_path,
                                          "p_values_path": self.p_values_path})
 
-        encoded_dataset = RepertoireDataset(labels=dataset.labels, encoded_data=encoded_data, repertoires=dataset.repertoires)
+        encoded_dataset = RepertoireDataset(labels=dataset.labels, encoded_data=encoded_data,
+                                            repertoires=dataset.repertoires)
 
         return encoded_dataset
 
@@ -186,24 +195,29 @@ class KmerAbundanceEncoder(DatasetEncoder):
         sequence_presence_matrix = sequence_presence_matrix[:, relevant]
         matrix_repertoire_ids = matrix_repertoire_ids[relevant]
 
-        is_positive_class = AbundanceEncoderHelper.check_is_positive_class(dataset, matrix_repertoire_ids, params.label_config)
+        is_positive_class = AbundanceEncoderHelper.check_is_positive_class(dataset, matrix_repertoire_ids,
+                                                                           params.label_config)
 
-        relevant_sequence_indices, file_paths = AbundanceEncoderHelper.get_relevant_sequence_indices(sequence_presence_matrix, is_positive_class,
-                                                                                                     self.p_value_threshold,
-                                                                                                     self.relevant_indices_path, params,
-                                                                                                     cache_params=(dataset.get_repertoire_ids(),
-                                                                                                                   self.kmer_frequency_params))
+        relevant_sequence_indices, file_paths = AbundanceEncoderHelper.get_relevant_sequence_indices(
+            sequence_presence_matrix, is_positive_class,
+            self.p_value_threshold,
+            self.relevant_indices_path, params,
+            cache_params=(dataset.get_repertoire_ids(),
+                          self.kmer_frequency_params))
         self._write_relevant_kmers_csv(relevant_sequence_indices, params.result_path)
         self._set_file_paths(file_paths)
 
-        abundance_matrix = AbundanceEncoderHelper.build_abundance_matrix(sequence_presence_matrix, matrix_repertoire_ids,
-                                                                         dataset.get_repertoire_ids(), relevant_sequence_indices)
+        abundance_matrix = AbundanceEncoderHelper.build_abundance_matrix(sequence_presence_matrix,
+                                                                         matrix_repertoire_ids,
+                                                                         dataset.get_repertoire_ids(),
+                                                                         relevant_sequence_indices)
 
         return abundance_matrix
 
     def _set_file_paths(self, file_paths):
         self.relevant_indices_path = file_paths["relevant_indices_path"]
-        self.contingency_table_path = file_paths["contingency_table_path"] if "contingency_table_path" in file_paths else None
+        self.contingency_table_path = file_paths[
+            "contingency_table_path"] if "contingency_table_path" in file_paths else None
         self.p_values_path = file_paths["p_values_path"] if "p_values_path" in file_paths else None
 
     def _write_relevant_kmers_csv(self, relevant_sequence_indices, result_path):
@@ -228,7 +242,8 @@ class KmerAbundanceEncoder(DatasetEncoder):
         return encoder_file
 
     def get_additional_files(self) -> List[Path]:
-        return [file for file in [self.relevant_indices_path, self.relevant_sequence_path, self.contingency_table_path, self.p_values_path] if file]
+        return [file for file in [self.relevant_indices_path, self.relevant_sequence_path, self.contingency_table_path,
+                                  self.p_values_path] if file]
 
     @staticmethod
     def load_encoder(encoder_file: Path):

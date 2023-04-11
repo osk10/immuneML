@@ -20,8 +20,9 @@ class Util:
                 mapped_y[i] = class_mapping[y[i]]
             return mapped_y.astype(old_class_type)
         except Exception as e:
-            logging.exception("MLMethod util: error occurred when predicting the class assignment due to mismatch of class types.\n"
-                              f"Classes: {y}\nMapping:{class_mapping}")
+            logging.exception(
+                "MLMethod util: error occurred when predicting the class assignment due to mismatch of class types.\n"
+                f"Classes: {y}\nMapping:{class_mapping}")
             raise e
 
     @staticmethod
@@ -73,7 +74,6 @@ class Util:
             unique_values.remove(positive_class)
             return {0: unique_values[0], 1: positive_class}
 
-
     @staticmethod
     def binarize_label_classes(true_y, predicted_y, classes):
         """
@@ -81,7 +81,8 @@ class Util:
 
         Necessary for some sklearn metrics, like roc_auc_score
         """
-        if hasattr(true_y, 'dtype') and true_y.dtype.type is np.str_ or isinstance(true_y, list) and any(isinstance(item, str) for item in true_y):
+        if hasattr(true_y, 'dtype') and true_y.dtype.type is np.str_ or isinstance(true_y, list) and any(
+                isinstance(item, str) for item in true_y):
             true_y = label_binarize(true_y, classes=classes)
             predicted_y = label_binarize(predicted_y, classes=classes)
 

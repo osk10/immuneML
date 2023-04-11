@@ -1,5 +1,4 @@
 import json
-from uuid import uuid4
 
 import numpy as np
 
@@ -26,22 +25,20 @@ class TCABReceptor(Receptor):
                                 beta=ReceptorSequence.create_from_record(beta_record),
                                 identifier=record['identifier'], metadata=metadata)
         else:
-            raise NotImplementedError(f"Supported ({TCABReceptor.version}) and available version differ, but there is no converter available.")
+            raise NotImplementedError(
+                f"Supported ({TCABReceptor.version}) and available version differ, but there is no converter available.")
 
-    def __init__(self, alpha: ReceptorSequence = None, beta: ReceptorSequence = None, metadata: dict = None, identifier: str = None):
+    def __init__(self, alpha: ReceptorSequence = None, beta: ReceptorSequence = None, metadata: dict = None,
+                 identifier: str = None):
+        super().__init__(metadata, identifier)
         self.alpha = alpha
         self.beta = beta
-        self.metadata = metadata
-        self.identifier = uuid4().hex if identifier is None else identifier
-
-    def get_chains(self):
-        return ["alpha", "beta"]
 
     @classmethod
     def get_record_names(cls):
         return ['alpha_' + name for name in ReceptorSequence.get_record_names()] \
-               + ['beta_' + name for name in ReceptorSequence.get_record_names()] \
-               + [name for name in cls.FIELDS if name not in ['alpha', 'beta']]
+            + ['beta_' + name for name in ReceptorSequence.get_record_names()] \
+            + [name for name in cls.FIELDS if name not in ['alpha', 'beta']]
 
-    def get_attribute(self, name: str):
-        raise NotImplementedError
+    def get_chains(self):
+        return ["alpha", "beta"]

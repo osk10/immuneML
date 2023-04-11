@@ -41,7 +41,8 @@ class Repertoire(DatasetItem):
     def process_custom_lists(custom_lists):
         if custom_lists:
             field_list = list(custom_lists.keys())
-            values = [[NumpyHelper.get_numpy_representation(el) for el in custom_lists[field]] for field in custom_lists.keys()]
+            values = [[NumpyHelper.get_numpy_representation(el) for el in custom_lists[field]] for field in
+                      custom_lists.keys()]
             dtype = [(field, np.array(values[index]).dtype) for index, field in enumerate(custom_lists.keys())]
         else:
             field_list, values, dtype = [], [], []
@@ -49,7 +50,8 @@ class Repertoire(DatasetItem):
 
     @staticmethod
     def check_count(sequence_aas: list = None, sequences: list = None, custom_lists: dict = None) -> int:
-        sequence_count = len(sequence_aas) if sequence_aas is not None else len(sequences) if sequences is not None else 0
+        sequence_count = len(sequence_aas) if sequence_aas is not None else len(
+            sequences) if sequences is not None else 0
 
         if sequences is not None and sequence_aas is not None:
             assert len(sequences) == len(sequence_aas), \
@@ -71,7 +73,8 @@ class Repertoire(DatasetItem):
 
         sequence_count = Repertoire.check_count(sequence_aas, sequences, custom_lists)
 
-        if sequence_identifiers is None or len(sequence_identifiers) == 0 or any(identifier is None for identifier in sequence_identifiers):
+        if sequence_identifiers is None or len(sequence_identifiers) == 0 or any(
+                identifier is None for identifier in sequence_identifiers):
             sequence_identifiers = np.arange(sequence_count).astype(str)
 
         identifier = uuid4().hex
@@ -95,7 +98,8 @@ class Repertoire(DatasetItem):
         for field in Repertoire.FIELDS:
             if eval(field) is not None and not all(el is None for el in eval(field)):
                 field_list.append(field)
-                values.append([NumpyHelper.get_numpy_representation(val) if val is not None else np.nan for val in eval(field)])
+                values.append(
+                    [NumpyHelper.get_numpy_representation(val) if val is not None else np.nan for val in eval(field)])
                 dtype.append((field, np.array(values[-1]).dtype))
 
         repertoire_matrix = np.array(list(map(tuple, zip(*values))), order='F', dtype=dtype)
@@ -138,7 +142,8 @@ class Repertoire(DatasetItem):
             "Repertoire: all sequences have to be instances of ReceptorSequence class."
 
         sequence_aas, sequences, v_genes, j_genes, v_subgroups, j_subgroups, v_alleles, j_alleles, chains, counts, region_types, frame_types, sequence_identifiers, cell_ids = [], [], [], [], [], [], [], [], [], [], [], [], [], []
-        custom_lists = {key: [] for key in sequence_objects[0].metadata.custom_params} if sequence_objects[0].metadata else {}
+        custom_lists = {key: [] for key in sequence_objects[0].metadata.custom_params} if sequence_objects[
+            0].metadata else {}
         signals = {}
 
         for index, sequence in enumerate(sequence_objects):
@@ -158,7 +163,8 @@ class Repertoire(DatasetItem):
                 frame_types.append(sequence.metadata.frame_type)
                 cell_ids.append(sequence.metadata.cell_id)
                 for param in sequence.metadata.custom_params.keys():
-                    custom_lists[param].append(sequence.metadata.custom_params[param] if param in sequence.metadata.custom_params else None)
+                    custom_lists[param].append(
+                        sequence.metadata.custom_params[param] if param in sequence.metadata.custom_params else None)
             if sequence.annotation and sequence.annotation.implants and len(sequence.annotation.implants) > 0:
                 for implant in sequence.annotation.implants:
                     if implant.signal_id in signals:
@@ -166,9 +172,12 @@ class Repertoire(DatasetItem):
                     else:
                         signals[implant.signal_id] = [None for _ in range(index)] + [str(vars(implant))]
 
-        return cls.build(sequence_aas=sequence_aas, sequences=sequences, v_genes=v_genes, j_genes=j_genes, v_subgroups=v_subgroups,
-                         j_subgroups=j_subgroups, v_alleles=v_alleles, j_alleles=j_alleles, chains=chains, counts=counts, region_types=region_types,
-                         frame_types=frame_types, custom_lists=custom_lists, sequence_identifiers=sequence_identifiers, path=path, metadata=metadata,
+        return cls.build(sequence_aas=sequence_aas, sequences=sequences, v_genes=v_genes, j_genes=j_genes,
+                         v_subgroups=v_subgroups,
+                         j_subgroups=j_subgroups, v_alleles=v_alleles, j_alleles=j_alleles, chains=chains,
+                         counts=counts, region_types=region_types,
+                         frame_types=frame_types, custom_lists=custom_lists, sequence_identifiers=sequence_identifiers,
+                         path=path, metadata=metadata,
                          signals=signals, cell_ids=cell_ids, filename_base=filename_base)
 
     def __init__(self, data_filename: Path, metadata_filename: Path, identifier: str):
@@ -237,7 +246,8 @@ class Repertoire(DatasetItem):
             if attribute in data.dtype.names:
                 result[attribute] = data[attribute]
             else:
-                logging.warning(f"{Repertoire.__name__}: attribute {attribute} is not present in the repertoire {self.identifier}, skipping...")
+                logging.warning(
+                    f"{Repertoire.__name__}: attribute {attribute} is not present in the repertoire {self.identifier}, skipping...")
         return result
 
     def get_region_type(self):
@@ -283,17 +293,24 @@ class Repertoire(DatasetItem):
                                identifier=row["sequence_identifiers"] if "sequence_identifiers" in fields else None,
                                metadata=SequenceMetadata(v_gene=row["v_genes"] if "v_genes" in fields else None,
                                                          j_gene=row["j_genes"] if "j_genes" in fields else None,
-                                                         v_subgroup=row["v_subgroups"] if "v_subgroups" in fields else None,
-                                                         j_subgroup=row["j_subgroups"] if "j_subgroups" in fields else None,
+                                                         v_subgroup=row[
+                                                             "v_subgroups"] if "v_subgroups" in fields else None,
+                                                         j_subgroup=row[
+                                                             "j_subgroups"] if "j_subgroups" in fields else None,
                                                          v_allele=row["v_alleles"] if "v_alleles" in fields else None,
                                                          j_allele=row["j_alleles"] if "j_alleles" in fields else None,
                                                          chain=row["chains"] if "chains" in fields else None,
-                                                         count=row["counts"] if "counts" in fields and not NumpyHelper.is_nan_or_empty(row['counts']) else None,
-                                                         region_type=row["region_types"] if "region_types" in fields else None,
-                                                         frame_type=row["frame_types"] if "frame_types" in fields else "IN",
+                                                         count=row[
+                                                             "counts"] if "counts" in fields and not NumpyHelper.is_nan_or_empty(
+                                                             row['counts']) else None,
+                                                         region_type=row[
+                                                             "region_types"] if "region_types" in fields else None,
+                                                         frame_type=row[
+                                                             "frame_types"] if "frame_types" in fields else "IN",
                                                          cell_id=row["cell_ids"] if "cell_ids" in fields else None,
                                                          custom_params={key: row[key] if key in fields else None
-                                                                        for key in set(self.fields) - set(Repertoire.FIELDS)}),
+                                                                        for key in
+                                                                        set(self.fields) - set(Repertoire.FIELDS)}),
                                annotation=SequenceAnnotation(implants=implants))
 
         return seq

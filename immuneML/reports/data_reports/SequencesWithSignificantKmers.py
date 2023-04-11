@@ -81,11 +81,13 @@ class SequencesWithSignificantKmers(DataReport):
         if isinstance(self.dataset, RepertoireDataset):
             return True
         else:
-            warnings.warn(f"{SequencesWithSignificantKmers.__name__}: report can be generated only from RepertoireDataset. Skipping this report...")
+            warnings.warn(
+                f"{SequencesWithSignificantKmers.__name__}: report can be generated only from RepertoireDataset. Skipping this report...")
             return False
 
     def _generate(self) -> ReportResult:
-        self.label_config = LabelHelper.create_label_config([self.label], self.dataset, SequencesWithSignificantKmers.__name__,
+        self.label_config = LabelHelper.create_label_config([self.label], self.dataset,
+                                                            SequencesWithSignificantKmers.__name__,
                                                             f"{SequencesWithSignificantKmers.__name__}/label")
 
         report_outputs = self._write_output_files()

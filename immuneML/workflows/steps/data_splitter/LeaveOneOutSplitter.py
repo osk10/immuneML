@@ -14,8 +14,9 @@ class LeaveOneOutSplitter:
         if isinstance(input_params.dataset, ReceptorDataset) or isinstance(input_params.dataset, SequenceDataset):
             return LeaveOneOutSplitter._split_receptor_dataset(input_params)
         else:
-            raise NotImplementedError("LeaveOneOutSplitter: leave-one-out stratification is currently implemented only for receptor dataset, "
-                                      f"got {type(input_params.dataset).__name__} instead.")
+            raise NotImplementedError(
+                "LeaveOneOutSplitter: leave-one-out stratification is currently implemented only for receptor dataset, "
+                f"got {type(input_params.dataset).__name__} instead.")
 
     @staticmethod
     def _split_receptor_dataset(input_params: DataSplitterParams):
@@ -26,7 +27,8 @@ class LeaveOneOutSplitter:
         input_params = LeaveOneOutSplitter._update_split_count(input_params, unique_values)
         train_indices, test_indices = LeaveOneOutSplitter._get_train_test_indices(dataset, unique_values, param)
 
-        train_datasets, test_datasets = LeaveOneOutSplitter._make_datasets_from_indices(unique_values, dataset, train_indices, test_indices,
+        train_datasets, test_datasets = LeaveOneOutSplitter._make_datasets_from_indices(unique_values, dataset,
+                                                                                        train_indices, test_indices,
                                                                                         input_params)
 
         return train_datasets, test_datasets
@@ -43,8 +45,10 @@ class LeaveOneOutSplitter:
     def _make_datasets_from_indices(unique_values, dataset, train_indices, test_indices, input_params):
         train_datasets, test_datasets = [], []
         for index, value in enumerate(unique_values):
-            train_datasets.append(Util.make_dataset(dataset, train_indices[value], input_params, index, type(dataset).TRAIN))
-            test_datasets.append(Util.make_dataset(dataset, test_indices[value], input_params, index, type(dataset).TEST))
+            train_datasets.append(
+                Util.make_dataset(dataset, train_indices[value], input_params, index, type(dataset).TRAIN))
+            test_datasets.append(
+                Util.make_dataset(dataset, test_indices[value], input_params, index, type(dataset).TEST))
 
         return train_datasets, test_datasets
 
@@ -55,12 +59,14 @@ class LeaveOneOutSplitter:
         elif isinstance(dataset, SequenceDataset):
             parameter_values = [seq.metadata.custom_params[param] for seq in dataset.get_data()]
         else:
-            raise RuntimeError(f"{LeaveOneOutSplitter.__name__}: dataset of type {type(dataset)} cannot be used with this splitter.")
+            raise RuntimeError(
+                f"{LeaveOneOutSplitter.__name__}: dataset of type {type(dataset)} cannot be used with this splitter.")
 
         unique_values, count = np.unique(parameter_values, return_counts=True)
 
-        assert all(el > min_count for el in count), f"DataSplitter: there are not enough examples with different values of the parameter {param} " \
-                                                    f"to split the dataset."
+        assert all(el > min_count for el in
+                   count), f"DataSplitter: there are not enough examples with different values of the parameter {param} " \
+                           f"to split the dataset."
 
         return unique_values
 

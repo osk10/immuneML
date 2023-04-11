@@ -1,6 +1,5 @@
 from sklearn.neighbors import KNeighborsClassifier
 
-
 from immuneML.ml_methods.SklearnMethod import SklearnMethod
 from scripts.specification_util import update_docs_per_mapping
 
@@ -23,7 +22,7 @@ class PrecomputedKNN(SklearnMethod):
     .. code-block:: yaml
 
         my_knn_method:
-            KNN:
+            PrecomputedKNN:
                 # sklearn parameters (same names as in original sklearn class)
                 weights: uniform # always use this setting for weights
                 n_neighbors: [5, 10, 15] # find the optimal number of neighbors
@@ -35,7 +34,7 @@ class PrecomputedKNN(SklearnMethod):
             model_selection_cv: True
             model_selection_n_folds: 5
         # alternative way to define ML method with default values:
-        my_default_knn: KNN
+        my_default_knn: PrecomputedKNN
 
     """
 
@@ -57,7 +56,6 @@ class PrecomputedKNN(SklearnMethod):
     def can_predict_proba(self) -> bool:
         return True
 
-
     def get_compatible_encoders(self):
         from immuneML.encodings.distance_encoding.CompAIRRDistanceEncoder import CompAIRRDistanceEncoder
         from immuneML.encodings.distance_encoding.DistanceEncoder import DistanceEncoder
@@ -69,9 +67,9 @@ class PrecomputedKNN(SklearnMethod):
         doc = str(PrecomputedKNN.__doc__)
 
         mapping = {
-            "For usage instructions, check :py:obj:`~immuneML.ml_methods.SklearnMethod.SklearnMethod`.": SklearnMethod.get_usage_documentation("KNN"),
+            "For usage instructions, check :py:obj:`~immuneML.ml_methods.SklearnMethod.SklearnMethod`.": SklearnMethod.get_usage_documentation(
+                "KNN"),
         }
 
         doc = update_docs_per_mapping(doc, mapping)
         return doc
-

@@ -70,10 +70,11 @@ class ProbabilisticBinaryClassifier(MLMethod):
     def fit(self, encoded_data: EncodedData, label: Label, cores_for_training: int = 2):
         self.feature_names = encoded_data.feature_names
         X = encoded_data.examples
-        assert X.shape[1] == 2, "ProbabilisticBinaryClassifier: the shape of the input is not compatible with the classifier. " \
-                                "The classifier is defined when examples are encoded by two counts: the number of successful trials " \
-                                "and the total number of trials. If this is not targeted use-case and the encoding, please consider using " \
-                                "another classifier."
+        assert X.shape[
+                   1] == 2, "ProbabilisticBinaryClassifier: the shape of the input is not compatible with the classifier. " \
+                            "The classifier is defined when examples are encoded by two counts: the number of successful trials " \
+                            "and the total number of trials. If this is not targeted use-case and the encoding, please consider using " \
+                            "another classifier."
 
         self.class_mapping = Util.make_binary_class_mapping(encoded_data.labels[label.name], label.positive_class)
         self.label = label
@@ -84,9 +85,11 @@ class ProbabilisticBinaryClassifier(MLMethod):
         self.alpha_1, self.beta_1 = self._find_beta_distribution_parameters(
             X[np.nonzero(np.array(encoded_data.labels[self.label.name]) == self.class_mapping[1])], self.N_1)
 
-    def fit_by_cross_validation(self, encoded_data: EncodedData, number_of_splits: int = 5, label: Label = None, cores_for_training: int = -1,
+    def fit_by_cross_validation(self, encoded_data: EncodedData, number_of_splits: int = 5, label: Label = None,
+                                cores_for_training: int = -1,
                                 optimization_metric=None):
-        warnings.warn("ProbabilisticBinaryClassifier: cross-validation on this classifier is not defined: fitting one model instead...")
+        warnings.warn(
+            "ProbabilisticBinaryClassifier: cross-validation on this classifier is not defined: fitting one model instead...")
         self.fit(encoded_data, label)
 
     def predict(self, encoded_data: EncodedData, label: Label):
@@ -144,12 +147,14 @@ class ProbabilisticBinaryClassifier(MLMethod):
         self._check_labels(label.name)
         X = encoded_data.examples
         class_probabilities = np.zeros((X.shape[0], len(list(self.class_mapping.keys()))), dtype=float)
+
         for index, example in enumerate(X):
             k, n = example[0], example[1]
             posterior_class_probabilities = self._compute_posterior_class_probability(k, n)
             class_probabilities[index] = posterior_class_probabilities
 
-        return {self.label.name: class_probabilities}
+        return {
+            label.name: {self.class_mapping[i]: class_probabilities[:, i] for i in range(class_probabilities.shape[1])}}
 
     def _find_beta_distribution_parameters(self, X, N_l: int) -> Tuple[float, float]:
         """
@@ -318,19 +323,24 @@ class ProbabilisticBinaryClassifier(MLMethod):
             a tuple of probabilities for negative class and positive class for given example, normalized to sum to 1
 
         """
-        predicted_probability_0 = beta_binomial.pmf(k, n, self.alpha_0, self.beta_0) * (self.N_0 + 1) / (self.N_0 + self.N_1 + 2)
-        predicted_probability_1 = beta_binomial.pmf(k, n, self.alpha_1, self.beta_1) * (self.N_1 + 1) / (self.N_0 + self.N_1 + 2)
+        predicted_probability_0 = beta_binomial.pmf(k, n, self.alpha_0, self.beta_0) * (self.N_0 + 1) / (
+                    self.N_0 + self.N_1 + 2)
+        predicted_probability_1 = beta_binomial.pmf(k, n, self.alpha_1, self.beta_1) * (self.N_1 + 1) / (
+                    self.N_0 + self.N_1 + 2)
 
         normalization_const = predicted_probability_0 + predicted_probability_1
 
         if np.isnan(normalization_const):
-            raise ValueError(f"{ProbabilisticBinaryClassifier.__name__}: encountered nan in predicted posterior class probabilities."
-                             f"\nprobability of class 0: {predicted_probability_0}\nprobability of class 1: {predicted_probability_1}\n"
-                             f"alpha 0: {self.alpha_0}, beta 0: {self.beta_0}\nalpha 1: {self.alpha_1}, beta 1: {self.beta_1}\n"
-                             f"positive example count: {self.N_1}, negative example count: {self.N_0}")
+            raise ValueError(
+                f"{ProbabilisticBinaryClassifier.__name__}: encountered nan in predicted posterior class probabilities."
+                f"\nprobability of class 0: {predicted_probability_0}\nprobability of class 1: {predicted_probability_1}\n"
+                f"alpha 0: {self.alpha_0}, beta 0: {self.beta_0}\nalpha 1: {self.alpha_1}, beta 1: {self.beta_1}\n"
+                f"positive example count: {self.N_1}, negative example count: {self.N_0}")
         elif normalization_const == 0:
-            warnings.warn(f"{ProbabilisticBinaryClassifier.__name__}: posterior class probabilities for both classes are 0 (k={k}, n={n}). Returning "
-                          f"normalized values to indicate that the example could not be classified, by setting both probabilities to 0.5.", RuntimeWarning)
+            warnings.warn(
+                f"{ProbabilisticBinaryClassifier.__name__}: posterior class probabilities for both classes are 0 (k={k}, n={n}). Returning "
+                f"normalized values to indicate that the example could not be classified, by setting both probabilities to 0.5.",
+                RuntimeWarning)
             return 0.5, 0.5
 
         return predicted_probability_0 / normalization_const, predicted_probability_1 / normalization_const
@@ -354,9 +364,9 @@ class ProbabilisticBinaryClassifier(MLMethod):
 
         """
         return np.log(self.N_1 + 1) - np.log(self.N_0 + 1) \
-               + beta_func_ln(self.alpha_0, self.beta_0) - beta_func_ln(self.alpha_1, self.beta_1) \
-               + beta_func_ln(k + self.alpha_1, n - k + self.beta_1) \
-               - beta_func_ln(k + self.alpha_0, n - k + self.beta_0)
+            + beta_func_ln(self.alpha_0, self.beta_0) - beta_func_ln(self.alpha_1, self.beta_1) \
+            + beta_func_ln(k + self.alpha_1, n - k + self.beta_1) \
+            - beta_func_ln(k + self.alpha_0, n - k + self.beta_0)
 
     def _convert_object_to_dict(self):
         content = vars(self)
@@ -364,7 +374,9 @@ class ProbabilisticBinaryClassifier(MLMethod):
         for key, value in content.items():
             if isinstance(value, np.ndarray):
                 result[key] = value.tolist()
-            elif value is None or isinstance(value, str) or isinstance(value, dict) or isinstance(value, list) or isinstance(value, Path):
+            elif value is None or isinstance(value, str) or isinstance(value, dict) or isinstance(value,
+                                                                                                  list) or isinstance(
+                    value, Path):
                 result[key] = value
             elif isinstance(value, Label):
                 result[key] = value.name
@@ -393,7 +405,8 @@ class ProbabilisticBinaryClassifier(MLMethod):
                 "classes": list(self.class_mapping.values())
             }}
             if self.label is not None:
-                desc["label"] = vars(self.label)
+                desc["label"] = self.label.get_desc_for_storage()
+
             yaml.dump(desc, file)
 
     def load(self, path: Path):
@@ -403,10 +416,11 @@ class ProbabilisticBinaryClassifier(MLMethod):
             with file_path.open("rb") as file:
                 content = pickle.load(file)
                 assert all(
-                    key in keys for key in content.keys()), f"ProbabilisticBinaryClassifier: error while loading from {file_path}: " \
-                                                            f"object attributes from file and from the class do not match.\n" \
-                                                            f"Attributes from file: {list(content.keys())}\n" \
-                                                            f"Attributes for object of class ProbabilisticBinaryClassifier: {keys}"
+                    key in keys for key in
+                    content.keys()), f"ProbabilisticBinaryClassifier: error while loading from {file_path}: " \
+                                     f"object attributes from file and from the class do not match.\n" \
+                                     f"Attributes from file: {list(content.keys())}\n" \
+                                     f"Attributes for object of class ProbabilisticBinaryClassifier: {keys}"
                 for key in content:
                     if key == "label":
                         setattr(self, "label", Label(**content[key]))
@@ -450,6 +464,7 @@ class ProbabilisticBinaryClassifier(MLMethod):
 
     def get_compatible_encoders(self):
         from immuneML.encodings.abundance_encoding.SequenceAbundanceEncoder import SequenceAbundanceEncoder
-        from immuneML.encodings.abundance_encoding.CompAIRRSequenceAbundanceEncoder import CompAIRRSequenceAbundanceEncoder
+        from immuneML.encodings.abundance_encoding.CompAIRRSequenceAbundanceEncoder import \
+            CompAIRRSequenceAbundanceEncoder
         from immuneML.encodings.abundance_encoding.KmerAbundanceEncoder import KmerAbundanceEncoder
         return [SequenceAbundanceEncoder, CompAIRRSequenceAbundanceEncoder, KmerAbundanceEncoder]

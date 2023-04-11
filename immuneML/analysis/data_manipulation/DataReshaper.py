@@ -28,9 +28,11 @@ class DataReshaper:
         matrix = dataset.encoded_data.examples
         matrix_1d = matrix.A.ravel() if issparse(matrix) else matrix.ravel()
 
-        column_annotations = pd.concat([column_annotations]*matrix.shape[0], ignore_index=True)
-        row_annotations = pd.DataFrame(row_annotations.values.repeat(matrix.shape[1], axis=0), columns=row_annotations.columns)
-        data = pd.concat([row_annotations.reset_index(drop=True), column_annotations.reset_index(drop=True), pd.DataFrame({"value": matrix_1d})], axis=1)
+        column_annotations = pd.concat([column_annotations] * matrix.shape[0], ignore_index=True)
+        row_annotations = pd.DataFrame(row_annotations.values.repeat(matrix.shape[1], axis=0),
+                                       columns=row_annotations.columns)
+        data = pd.concat([row_annotations.reset_index(drop=True), column_annotations.reset_index(drop=True),
+                          pd.DataFrame({"value": matrix_1d})], axis=1)
 
         for column in data.columns:
             data[column] = pd.to_numeric(data[column], errors="ignore")

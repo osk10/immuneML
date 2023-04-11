@@ -1,11 +1,10 @@
-from sklearn.preprocessing import normalize, binarize
 import numpy as np
+from sklearn.preprocessing import normalize, binarize
 
 from immuneML.analysis.data_manipulation.NormalizationType import NormalizationType
 
 
 class FeatureScaler:
-
     SKLEARN_NORMALIZATION_TYPES = ["l1", "l2", "max"]
 
     @staticmethod
@@ -81,6 +80,7 @@ class FeatureScaler:
         elif normalization_type.value in FeatureScaler.SKLEARN_NORMALIZATION_TYPES:
             normalized_design_matrix = normalize(design_matrix, norm=normalization_type.value, axis=1)
         else:
-            raise NotImplementedError("Normalization type {} ({}) is not implemented.".format(normalization_type.name, normalization_type.value))
+            raise NotImplementedError("Normalization type {} ({}) is not implemented.".format(normalization_type.name,
+                                                                                              normalization_type.value))
 
         return normalized_design_matrix

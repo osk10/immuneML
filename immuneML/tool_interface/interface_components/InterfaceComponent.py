@@ -8,6 +8,8 @@ from abc import ABC
 
 import zmq
 
+from immuneML.util.Logger import print_log
+
 
 class InterfaceComponent(ABC):
     def __init__(self, name: str, specs: dict):
@@ -22,9 +24,13 @@ class InterfaceComponent(ABC):
         self.set_interpreter()
 
     def set_interpreter(self):
-        """ Returns the correct interpreter for executable input. If no extension is found, it returns None and
-        assumes that no interpreter should be added to the subprocess module
+        """ Sets the interpreter necessary for running the tool
+
+        If no extension is found, it returns None and assumes that no interpreter should be added to the subprocess
+        module
         """
+
+        # Current valid interpreters
         interpreters = {
             ".py": "python",
             ".class": "java"
@@ -32,16 +38,15 @@ class InterfaceComponent(ABC):
 
         file_extension = os.path.splitext(self.tool_path)[-1]
         if file_extension not in interpreters:
-            print(f"Interpreter not found for executable: {self.tool_path}")
             return None
-
-        self.interpreter = interpreters.get(file_extension)
+        else:
+            self.interpreter = interpreters.get(file_extension)
 
     def create_json_params(self, specs: dict) -> str:
         """ Creates a json string from tool params specified in YAML
         """
         if 'params' in specs:
-            return json.dumps(specs['params'])
+            return json.dumps(specs['params'], ensure_ascii=False)
         else:
             return ""
 
@@ -53,10 +58,14 @@ class InterfaceComponent(ABC):
                 try:
                     sock.bind(("", port))
                     self.port = str(port)
+                    break
                 except OSError as e:
+                    # TODO: må denne printes ut eller kan vi bare passe her?
                     print(f"Error: {e}")
 
     def start_subprocess(self):
+        print_log(f"Starting tool named {self.name}...", include_datetime=True)
+
         self.set_port()
         working_dir = os.path.dirname(self.tool_path)
 
@@ -68,31 +77,52 @@ class InterfaceComponent(ABC):
 
         self.process = subprocess.Popen(subprocess_args, stdin=subprocess.PIPE, cwd=working_dir)
 
-    def stop_subprocess(self):
+        # TODO: skal dette være med?
+        # Wait for process to start
+        while self.process is None:
+            pass
 
-        print("stopping tool process", self.process.pid)
+    def stop_subprocess(self):
         if self.process is not None:
-            # TODO: should we use self.process.kill or terminate
+            print_log(f"Stopping tool named {self.name}...", include_datetime=True)
             self.process.kill()
             self.process = None
-        print("tool process stopped")
 
     def open_connection(self):
-        context = zmq.Context()
+        # TODO: (important info of how to connect to tool)
+        #  - We have to send an ack to make sure that we can communicate with the tool. That means that the tool has
+        #    to wait for a message from immuneML the second it starts and send an ack back to immuneML
+        #  - Once we have received an ack back, opening the connection is done and immuneML can continue with its
+        #    functionality
 
-        #  Socket to talk to server
-        print("Connecting to tool…")
-        self.socket = context.socket(zmq.REQ)
-        self.socket.connect("tcp://localhost:" + self.port)
-        print("Connected to tool")
+        attempts = 0
+        context = None
+
+        while True:
+            if attempts > 10:
+                print(f"Could not establish connection to tool after {attempts} attempts")
+                return
+            try:
+                # Try establishing a connection
+                context = zmq.Context()
+                self.socket = context.socket(zmq.REQ)
+                self.socket.connect("tcp://localhost:" + self.port)
+                self.socket.send_string("")
+                self.socket.recv_string()
+                # If we reach this point we have been able to create a connection
+                break
+            except zmq.error.ZMQError:
+                # Failed to establish connection, failed as a result of socket not being binded yet
+                attempts += 1
+                self.socket.close()
+                context.term()
+            time.sleep(1)  # add a sleep to give some time for the tool to connect
 
     def close_connection(self):
         self.socket.close()
 
-        # TODO: should we use self.context.term() as well?
-
     def execution_animation(self, process: subprocess):
-        """Function creates an animation to give user feedback while process in running
+        """Function creates an animation to give user feedback while process is running
         """
 
         num_dots = 0

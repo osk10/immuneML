@@ -31,14 +31,15 @@ class TestMLMethodAssessment(TestCase):
         dataset = RepertoireDataset(repertoires=RepertoireBuilder.build(
             [["AA"], ["CC"], ["AA"], ["CC"], ["AA"], ["CC"], ["AA"], ["CC"], ["AA"], ["CC"], ["AA"], ["CC"]], path)[0])
         dataset.encoded_data = EncodedData(
-            examples=np.array([[1, 1], [1, 1], [3, 3], [1, 1], [1, 1], [3, 3], [1, 1], [1, 1], [3, 3], [1, 1], [1, 1], [3, 3]]),
+            examples=np.array(
+                [[1, 1], [1, 1], [3, 3], [1, 1], [1, 1], [3, 3], [1, 1], [1, 1], [3, 3], [1, 1], [1, 1], [3, 3]]),
             labels={"l1": [1, 1, 3, 1, 1, 3, 1, 1, 3, 1, 1, 3], "l2": [1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3]}
         )
 
         label_config = LabelConfiguration()
-        label_config.add_label("l1", [1, 3])
+        label_config.add_label("l1", [1, 3], positive_class=3)
 
-        label = Label(name='l1', values=[1, 3])
+        label = Label(name='l1', values=[1, 3], positive_class=3)
 
         method1 = LogisticRegression()
         method1.fit(dataset.encoded_data, label=label)
