@@ -7,7 +7,6 @@ from immuneML.caching.CacheType import CacheType
 from immuneML.data_model.dataset.RepertoireDataset import RepertoireDataset
 from immuneML.encodings.EncoderParams import EncoderParams
 from immuneML.encodings.kmer_frequency.KmerFrequencyEncoder import KmerFrequencyEncoder
-from immuneML.util.ReadsType import ReadsType
 from immuneML.encodings.kmer_frequency.sequence_encoding.SequenceEncodingType import SequenceEncodingType
 from immuneML.environment.Constants import Constants
 from immuneML.environment.EnvironmentSettings import EnvironmentSettings
@@ -27,6 +26,7 @@ from immuneML.simulation.sequence_implanting.GappedMotifImplanting import Gapped
 from immuneML.simulation.signal_implanting_strategy.HealthySequenceImplanting import HealthySequenceImplanting
 from immuneML.simulation.signal_implanting_strategy.ImplantingComputation import ImplantingComputation
 from immuneML.util.PathBuilder import PathBuilder
+from immuneML.util.ReadsType import ReadsType
 from immuneML.workflows.steps.SignalImplanter import SignalImplanter
 
 
@@ -44,29 +44,39 @@ class TestConfounderAnalysis(TestCase):
         return dummy_lr
 
     def _make_dataset(self, path, size) -> RepertoireDataset:
+        random_dataset = RandomDatasetGenerator.generate_repertoire_dataset(repertoire_count=size,
+                                                                            sequence_count_probabilities={100: 1.},
+                                                                            sequence_length_probabilities={5: 1.},
+                                                                            labels={}, path=path)
 
-        random_dataset = RandomDatasetGenerator.generate_repertoire_dataset(repertoire_count=size, sequence_count_probabilities={100: 1.},
-                                                                            sequence_length_probabilities={5: 1.}, labels={}, path=path)
+        signals = [Signal(identifier="disease",
+                          motifs=[Motif(identifier="m1", instantiation=GappedKmerInstantiation(), seed="AAA")],
+                          implanting_strategy=HealthySequenceImplanting(
+                              implanting_computation=ImplantingComputation.ROUND,
+                              implanting=GappedMotifImplanting())),
+                   Signal(identifier="HLA",
+                          motifs=[Motif(identifier="m2", instantiation=GappedKmerInstantiation(), seed="CCC")],
+                          implanting_strategy=HealthySequenceImplanting(
+                              implanting_computation=ImplantingComputation.ROUND,
+                              implanting=GappedMotifImplanting())),
+                   Signal(identifier="age",
+                          motifs=[Motif(identifier="m3", instantiation=GappedKmerInstantiation(), seed="GGG")],
+                          implanting_strategy=HealthySequenceImplanting(
+                              implanting_computation=ImplantingComputation.ROUND,
+                              implanting=GappedMotifImplanting()))]
 
-        signals = [Signal(identifier="disease", motifs=[Motif(identifier="m1", instantiation=GappedKmerInstantiation(), seed="AAA")],
-                          implanting_strategy=HealthySequenceImplanting(implanting_computation=ImplantingComputation.ROUND,
-                                                                        implanting=GappedMotifImplanting())),
-                   Signal(identifier="HLA", motifs=[Motif(identifier="m2", instantiation=GappedKmerInstantiation(), seed="CCC")],
-                          implanting_strategy=HealthySequenceImplanting(implanting_computation=ImplantingComputation.ROUND,
-                                                                        implanting=GappedMotifImplanting())),
-                   Signal(identifier="age", motifs=[Motif(identifier="m3", instantiation=GappedKmerInstantiation(), seed="GGG")],
-                          implanting_strategy=HealthySequenceImplanting(implanting_computation=ImplantingComputation.ROUND,
-                                                                        implanting=GappedMotifImplanting()))]
+        simulation = Simulation(
+            [Implanting(dataset_implanting_rate=0.2, signals=signals, name='i1', repertoire_implanting_rate=0.25),
+             Implanting(dataset_implanting_rate=0.2, signals=[signals[0], signals[1]], name='i2',
+                        repertoire_implanting_rate=0.25),
+             Implanting(dataset_implanting_rate=0.1, signals=[signals[0]], name='i3', repertoire_implanting_rate=0.25),
+             Implanting(dataset_implanting_rate=0.2, signals=[signals[2]], name='i4', repertoire_implanting_rate=0.25),
+             Implanting(dataset_implanting_rate=0.1, signals=[signals[1]], name='i5', repertoire_implanting_rate=0.25)
+             ])
 
-        simulation = Simulation([Implanting(dataset_implanting_rate=0.2, signals=signals, name='i1', repertoire_implanting_rate=0.25),
-                                 Implanting(dataset_implanting_rate=0.2, signals=[signals[0], signals[1]], name='i2', repertoire_implanting_rate=0.25),
-                                 Implanting(dataset_implanting_rate=0.1, signals=[signals[0]], name='i3', repertoire_implanting_rate=0.25),
-                                 Implanting(dataset_implanting_rate=0.2, signals=[signals[2]], name='i4', repertoire_implanting_rate=0.25),
-                                 Implanting(dataset_implanting_rate=0.1, signals=[signals[1]], name='i5', repertoire_implanting_rate=0.25)
-                                 ])
-
-        dataset = SignalImplanter.run(SimulationState(signals=signals, dataset=random_dataset, formats=['ImmuneML'], result_path=path,
-                                                      name='my_synthetic_dataset', simulation=simulation))
+        dataset = SignalImplanter.run(
+            SimulationState(signals=signals, dataset=random_dataset, formats=['ImmuneML'], result_path=path,
+                            name='my_synthetic_dataset', simulation=simulation))
 
         return dataset
 
@@ -86,7 +96,7 @@ class TestConfounderAnalysis(TestCase):
         report = ConfounderAnalysis.build_object(metadata_labels=["age", "HLA"], name='test')
 
         report.ml_details_path = path / "ml_details.yaml"
-        report.label = Label("disease")
+        report.label = Label("disease", [True, False])
         report.result_path = path
         encoder = KmerFrequencyEncoder.build_object(RepertoireDataset(), **{
             "normalization_type": NormalizationType.RELATIVE_FREQUENCY.name,
@@ -96,8 +106,10 @@ class TestConfounderAnalysis(TestCase):
             'sequence_type': SequenceType.AMINO_ACID.name
         })
         report.train_dataset = self._encode_dataset(encoder, self._make_dataset(path / "train", size=100), path)
-        report.test_dataset = self._encode_dataset(encoder, self._make_dataset(path / "test", size=40), path, learn_model=False)
-        report.method = self._create_dummy_lr_model(path, report.train_dataset.encoded_data, Label("disease"))
+        report.test_dataset = self._encode_dataset(encoder, self._make_dataset(path / "test", size=40), path,
+                                                   learn_model=False)
+        report.method = self._create_dummy_lr_model(path, report.train_dataset.encoded_data,
+                                                    Label("disease", [True, False]))
 
         return report
 

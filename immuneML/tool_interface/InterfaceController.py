@@ -53,10 +53,8 @@ def check_running(name: str) -> bool:
 
     if tool.process is not None:
         if psutil.pid_exists(tool.process.pid):
-            print("Process is running")
             return True
         else:
-            print("Process stopped...")
             return False
     else:
         return False
@@ -66,3 +64,8 @@ def stop_tool(name: str):
     tool = toolTable.get(name)
     tool.close_connection()
     tool.stop_subprocess()
+
+
+def stop_all_tools():
+    for tool in toolTable.items:
+        stop_tool(tool)

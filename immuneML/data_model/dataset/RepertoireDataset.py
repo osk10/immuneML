@@ -16,7 +16,8 @@ class RepertoireDataset(Dataset):
 
     @classmethod
     def build(cls, **kwargs):
-        ParameterValidator.assert_keys_present(list(kwargs.keys()), ['metadata_file', 'name', 'repertoire_ids', 'metadata_fields'],
+        ParameterValidator.assert_keys_present(list(kwargs.keys()),
+                                               ['metadata_file', 'name', 'repertoire_ids', 'metadata_fields'],
                                                RepertoireDataset.__name__, "repertoire dataset")
         repertoires = []
         metadata_df = pd.read_csv(kwargs['metadata_file'], comment=Constants.COMMENT_SIGN)
@@ -29,15 +30,18 @@ class RepertoireDataset(Dataset):
                                     identifier=row['identifier'])
             repertoires.append(repertoire)
 
-        if "repertoire_ids" in kwargs.keys() and "repertoires" not in kwargs.keys() and kwargs['repertoire_ids'] is not None:
+        if "repertoire_ids" in kwargs.keys() and "repertoires" not in kwargs.keys() and kwargs[
+            'repertoire_ids'] is not None:
             assert all(rep.identifier == kwargs['repertoire_ids'][i] for i, rep in enumerate(repertoires)), \
                 f"{RepertoireDataset.__name__}: repertoire ids from the iml_dataset file and metadata file don't match for the dataset " \
                 f"{kwargs['name']} with identifier {kwargs['identifier']}."
 
         return RepertoireDataset(**{**kwargs, **{"repertoires": repertoires}})
 
-    def __init__(self, labels: dict = None, encoded_data: EncodedData = None, repertoires: list = None, identifier: str = None,
-                 metadata_file: Path = None, name: str = None, metadata_fields: list = None, repertoire_ids: list = None):
+    def __init__(self, labels: dict = None, encoded_data: EncodedData = None, repertoires: list = None,
+                 identifier: str = None,
+                 metadata_file: Path = None, name: str = None, metadata_fields: list = None,
+                 repertoire_ids: list = None):
         super().__init__(encoded_data, name, identifier if identifier is not None else uuid.uuid4().hex, labels)
         self.metadata_file = Path(metadata_file) if metadata_file is not None else None
         self.metadata_fields = metadata_fields
@@ -63,7 +67,8 @@ class RepertoireDataset(Dataset):
     def get_repertoire(self, index: int = -1, repertoire_identifier: str = "") -> Repertoire:
         assert index != -1 or repertoire_identifier != "", \
             "RepertoireDataset: cannot import_dataset repertoire since the index nor identifier are set."
-        return self.repertoires[index] if index != -1 else [rep for rep in self.repertoires if rep.identifier == repertoire_identifier][0]
+        return self.repertoires[index] if index != -1 else \
+        [rep for rep in self.repertoires if rep.identifier == repertoire_identifier][0]
 
     def get_example_count(self):
         return len(self.repertoires)
@@ -137,7 +142,8 @@ class RepertoireDataset(Dataset):
         """
 
         metadata_file = self._build_new_metadata(example_indices, path / f"{dataset_type}_metadata.csv")
-        new_dataset = RepertoireDataset(repertoires=[self.repertoires[i] for i in example_indices], labels=copy.deepcopy(self.labels),
+        new_dataset = RepertoireDataset(repertoires=[self.repertoires[i] for i in example_indices],
+                                        labels=copy.deepcopy(self.labels),
                                         metadata_file=metadata_file, identifier=str(uuid.uuid1()))
 
         return new_dataset
@@ -151,3 +157,7 @@ class RepertoireDataset(Dataset):
     def get_example_ids(self):
         """Returns a list of example identifiers"""
         return self.get_repertoire_ids()
+
+    def get_subject_ids(self):
+        """Returns a list of subject identifiers"""
+        return self.get_metadata(["subject_id"])["subject_id"]

@@ -12,13 +12,14 @@ class ElementDataset(Dataset):
     these two classes is whether paired or single chain data is stored.
     """
 
-    def __init__(self, labels: dict = None, encoded_data: EncodedData = None, filenames: list = None, identifier: str = None,
+    def __init__(self, labels: dict = None, encoded_data: EncodedData = None, filenames: list = None,
+                 identifier: str = None,
                  file_size: int = 50000, name: str = None, element_class_name: str = None, element_ids: list = None):
         super().__init__()
         self.labels = labels
         self.encoded_data = encoded_data
         self.identifier = identifier if identifier is not None else uuid4().hex
-        self.filenames = sorted(filenames) if filenames is not None else []
+        self.filenames = filenames if filenames is not None else []
         self.filenames = [Path(filename) for filename in self.filenames]
         self.element_generator = ElementGenerator(self.filenames, file_size, element_class_name)
         self.file_size = file_size
@@ -27,12 +28,10 @@ class ElementDataset(Dataset):
         self.element_class_name = element_class_name
 
     def get_data(self, batch_size: int = 10000):
-        self.filenames.sort()
         self.element_generator.file_list = self.filenames
         return self.element_generator.build_element_generator()
 
     def get_batch(self, batch_size: int = 10000):
-        self.filenames.sort()
         self.element_generator.file_list = self.filenames
         return self.element_generator.build_batch_generator()
 
@@ -66,15 +65,18 @@ class ElementDataset(Dataset):
             a new dataset object (ReceptorDataset or SequenceDataset, as the original dataset) which includes only the examples specified under example_indices
 
         """
-        new_dataset = self.__class__(labels=self.labels, file_size=self.file_size, element_class_name=self.element_generator.element_class_name)
-        batch_filenames = self.element_generator.make_subset(example_indices, path, dataset_type, new_dataset.identifier)
+        new_dataset = self.__class__(labels=self.labels, file_size=self.file_size,
+                                     element_class_name=self.element_generator.element_class_name)
+        batch_filenames = self.element_generator.make_subset(example_indices, path, dataset_type,
+                                                             new_dataset.identifier)
         new_dataset.set_filenames(batch_filenames)
         new_dataset.name = f"{self.name}_split_{dataset_type.lower()}"
         return new_dataset
 
     def get_label_names(self):
         """Returns the list of metadata fields which can be used as labels"""
-        return [label for label in list(self.labels.keys()) if label not in ['region_type', 'receptor_chains', 'organism']]
+        return [label for label in list(self.labels.keys()) if
+                label not in ['region_type', 'receptor_chains', 'organism']]
 
     def clone(self, keep_identifier: bool = False):
         raise NotImplementedError

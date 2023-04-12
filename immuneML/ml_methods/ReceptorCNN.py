@@ -92,9 +92,12 @@ class ReceptorCNN(MLMethod):
 
     """
 
-    def __init__(self, kernel_count: int = None, kernel_size=None, positional_channels: int = None, sequence_type: str = None, device=None,
-                 number_of_threads: int = None, random_seed: int = None, learning_rate: float = None, iteration_count: int = None,
-                 l1_weight_decay: float = None, l2_weight_decay: float = None, batch_size: int = None, training_percentage: float = None,
+    def __init__(self, kernel_count: int = None, kernel_size=None, positional_channels: int = None,
+                 sequence_type: str = None, device=None,
+                 number_of_threads: int = None, random_seed: int = None, learning_rate: float = None,
+                 iteration_count: int = None,
+                 l1_weight_decay: float = None, l2_weight_decay: float = None, batch_size: int = None,
+                 training_percentage: float = None,
                  evaluate_at: int = None, background_probabilities=None, result_path: Path = None):
 
         super().__init__()
@@ -122,12 +125,13 @@ class ReceptorCNN(MLMethod):
         self.feature_names = None
 
     def predict(self, encoded_data: EncodedData, label: Label):
-        predictions_proba = self.predict_proba(encoded_data, label)
-        return {label.name: [self.class_mapping[val] for val in (predictions_proba[label.name][:, 1] > 0.5).tolist()]}
+        predictions_proba = self.predict_proba(encoded_data, label)[label.name][self.label.positive_class]
+        return {label.name: [self.class_mapping[val] for val in (predictions_proba > 0.5).tolist()]}
 
     def set_background_probabilities(self):
-        self.background_probabilities = np.array([1. / len(EnvironmentSettings.get_sequence_alphabet(self.sequence_type))
-                           for i in range(len(EnvironmentSettings.get_sequence_alphabet(self.sequence_type)))])
+        self.background_probabilities = np.array(
+            [1. / len(EnvironmentSettings.get_sequence_alphabet(self.sequence_type))
+             for i in range(len(EnvironmentSettings.get_sequence_alphabet(self.sequence_type)))])
 
     def predict_proba(self, encoded_data: EncodedData, label: Label):
         # set the model to evaluation mode for inference
@@ -144,14 +148,16 @@ class ReceptorCNN(MLMethod):
                 prediction = torch.sigmoid(logit_outputs)
                 predictions.extend(prediction.numpy())
 
-        return {self.label.name: np.vstack([1 - np.array(predictions), predictions]).T}
+        return {self.label.name: {self.label.positive_class: np.array(predictions),
+                                  self.label.get_binary_negative_class(): 1 - np.array(predictions)}}
 
     def fit(self, encoded_data: EncodedData, label: Label, cores_for_training: int = 2):
 
         self.feature_names = encoded_data.feature_names
 
         Util.setup_pytorch(self.number_of_threads, self.random_seed)
-        if "chain_names" in encoded_data.info and encoded_data.info["chain_names"] is not None and len(encoded_data.info["chain_names"]) == 2:
+        if "chain_names" in encoded_data.info and encoded_data.info["chain_names"] is not None and len(
+                encoded_data.info["chain_names"]) == 2:
             self.chain_names = encoded_data.info["chain_names"]
         else:
             self.chain_names = ["chain_1", "chain_2"]
@@ -160,14 +166,17 @@ class ReceptorCNN(MLMethod):
         self.CNN.to(device=self.device)
 
         self.label = label
-        self.class_mapping = Util.make_binary_class_mapping(encoded_data.labels[self.label.name])
+        self.class_mapping = Util.make_binary_class_mapping(encoded_data.labels[self.label.name],
+                                                            self.label.positive_class)
 
         self.CNN.train()
 
         iteration = 0
         loss_function = nn.BCEWithLogitsLoss().to(device=self.device)
-        optimizer = torch.optim.Adam(self.CNN.parameters(), lr=self.learning_rate, weight_decay=self.l2_weight_decay, eps=1e-4)
-        state = dict(model=copy.deepcopy(self.CNN).state_dict(), optimizer=optimizer, iteration=iteration, best_validation_loss=np.inf)
+        optimizer = torch.optim.Adam(self.CNN.parameters(), lr=self.learning_rate, weight_decay=self.l2_weight_decay,
+                                     eps=1e-4)
+        state = dict(model=copy.deepcopy(self.CNN).state_dict(), optimizer=optimizer, iteration=iteration,
+                     best_validation_loss=np.inf)
         train_data, validation_data = self._prepare_and_split_data(encoded_data)
 
         logging.info("ReceptorCNN: starting training.")
@@ -202,17 +211,20 @@ class ReceptorCNN(MLMethod):
 
         logging.info("ReceptorCNN: finished training.")
 
-    def fit_by_cross_validation(self, encoded_data: EncodedData, number_of_splits: int = 5, label: Label = None, cores_for_training: int = -1,
+    def fit_by_cross_validation(self, encoded_data: EncodedData, number_of_splits: int = 5, label: Label = None,
+                                cores_for_training: int = -1,
                                 optimization_metric=None):
-        logging.warning(f"{ReceptorCNN.__name__}: cross_validation is not implemented for this method. Using standard fitting instead...")
+        logging.warning(
+            f"{ReceptorCNN.__name__}: cross_validation is not implemented for this method. Using standard fitting instead...")
         self.fit(encoded_data=encoded_data, label=label)
 
     def _get_data_batch(self, encoded_data: EncodedData, label_name: str):
         batch_count = int(math.ceil(len(encoded_data.example_ids) / self.batch_size))
         for i in range(batch_count):
             start_index, end_index = int(self.batch_size * i), int(self.batch_size * (i + 1))
-            yield encoded_data.examples[start_index: end_index], encoded_data.labels[label_name][start_index: end_index], \
-                  encoded_data.example_ids[start_index: end_index]
+            yield encoded_data.examples[start_index: end_index], encoded_data.labels[label_name][
+                                                                 start_index: end_index], \
+                encoded_data.example_ids[start_index: end_index]
 
     def _prepare_and_split_data(self, encoded_data: EncodedData):
         indices = list(range(len(encoded_data.example_ids)))
@@ -231,9 +243,12 @@ class ReceptorCNN(MLMethod):
         examples = np.swapaxes(encoded_data.examples, 2, 3)
         return EncodedData(examples=torch.from_numpy(examples[indices]).float(),
                            labels={
-                               label_name: torch.from_numpy(np.array([encoded_data.labels[label_name][i] for i in indices]) == self.class_mapping[1]).float()
+                               label_name: torch.from_numpy(
+                                   np.array([encoded_data.labels[label_name][i] for i in indices]) ==
+                                   self.class_mapping[1]).float()
                                for label_name in encoded_data.labels.keys()},
-                           example_ids=[encoded_data.example_ids[i] for i in indices], feature_names=encoded_data.feature_names,
+                           example_ids=[encoded_data.example_ids[i] for i in indices],
+                           feature_names=encoded_data.feature_names,
                            feature_annotations=encoded_data.feature_annotations, encoding=encoded_data.encoding)
 
     def _compute_loss(self, loss_function, logit_outputs, labels):
@@ -282,7 +297,7 @@ class ReceptorCNN(MLMethod):
         custom_vars["sequence_type"] = custom_vars["sequence_type"].name.lower()
 
         if self.label:
-            custom_vars["label"] = vars(self.label)
+            custom_vars["label"] = self.label.get_desc_for_storage()
 
         params_path = path / "custom_params.yaml"
         with params_path.open('w') as file:
@@ -310,8 +325,10 @@ class ReceptorCNN(MLMethod):
         if self.background_probabilities is None:
             self.set_background_probabilities()
 
-        self.CNN = RCNN(kernel_count=self.kernel_count, kernel_size=self.kernel_size, positional_channels=self.positional_channels,
-                        sequence_type=self.sequence_type, background_probabilities=self.background_probabilities, chain_names=self.chain_names)
+        self.CNN = RCNN(kernel_count=self.kernel_count, kernel_size=self.kernel_size,
+                        positional_channels=self.positional_channels,
+                        sequence_type=self.sequence_type, background_probabilities=self.background_probabilities,
+                        chain_names=self.chain_names)
 
     def check_if_exists(self, path):
         return self.CNN is not None
@@ -350,10 +367,12 @@ class ReceptorCNN(MLMethod):
                 break
 
         if not is_valid:
-            raise ValueError(f"{encoder.__class__.__name__} is not compatible with ML Method {self.__class__.__name__}. "
-                             f"Please use one of the following encoders instead: {', '.join([enc_class.__name__ for enc_class in self.get_compatible_encoders()])}")
+            raise ValueError(
+                f"{encoder.__class__.__name__} is not compatible with ML Method {self.__class__.__name__}. "
+                f"Please use one of the following encoders instead: {', '.join([enc_class.__name__ for enc_class in self.get_compatible_encoders()])}")
 
-        if (self.positional_channels == 3 and encoder.use_positional_info == False) or (self.positional_channels == 0 and encoder.use_positional_info == True):
+        if (self.positional_channels == 3 and encoder.use_positional_info == False) or (
+                self.positional_channels == 0 and encoder.use_positional_info == True):
             mssg = f"The specified parameters for {encoder.__class__.__name__} are not compatible with ML Method {self.__class__.__name__}. "
 
             if encoder.use_positional_info:
@@ -364,9 +383,3 @@ class ReceptorCNN(MLMethod):
                         f"or to ignore positional information, set the parameter 'positional_channels' of {self.__class__.__name__} to 0 (now {self.positional_channels})."
 
             raise ValueError(mssg)
-
-
-
-
-
-

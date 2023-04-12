@@ -8,6 +8,8 @@ from abc import ABC
 
 import zmq
 
+from immuneML.util.Logger import print_log
+
 
 class InterfaceComponent(ABC):
     def __init__(self, name: str, specs: dict):
@@ -36,11 +38,9 @@ class InterfaceComponent(ABC):
 
         file_extension = os.path.splitext(self.tool_path)[-1]
         if file_extension not in interpreters:
-            print(f"Interpreter not found for script: {self.tool_path}")
-            print(f"Assuming the file is an executable")  # TODO: We should add a bit more description here
             return None
-
-        self.interpreter = interpreters.get(file_extension)
+        else:
+            self.interpreter = interpreters.get(file_extension)
 
     def create_json_params(self, specs: dict) -> str:
         """ Creates a json string from tool params specified in YAML
@@ -69,10 +69,13 @@ class InterfaceComponent(ABC):
                 try:
                     sock.bind(("", port))
                     self.port = str(port)
+                    break
                 except OSError as e:
-                    print(f"Error: {e}")
+                    pass
 
     def start_subprocess(self):
+        print_log(f"Starting tool named {self.name}...", include_datetime=True)
+
         self.set_port()
         working_dir = os.path.dirname(self.tool_path)
 
@@ -89,13 +92,10 @@ class InterfaceComponent(ABC):
             pass
 
     def stop_subprocess(self):
-
-        print("stopping tool process", self.process.pid)
         if self.process is not None:
-            # TODO: should we use self.process.kill or terminate
+            print_log(f"Stopping tool named {self.name}...", include_datetime=True)
             self.process.kill()
             self.process = None
-        print("tool process stopped")
 
     def open_connection(self):
         # TODO: (important info of how to connect to tool)
@@ -104,7 +104,6 @@ class InterfaceComponent(ABC):
         #  - Once we have received an ack back, opening the connection is done and immuneML can continue with its
         #    functionality
 
-        print("Connecting to tool…")
         attempts = 0
         context = None
 
@@ -118,7 +117,7 @@ class InterfaceComponent(ABC):
                 self.socket = context.socket(zmq.REQ)
                 self.socket.connect("tcp://localhost:" + self.port)
                 self.socket.send_string("")
-                self.socket.recv()
+                self.socket.recv_string()
                 # If we reach this point we have been able to create a connection
                 break
             except zmq.error.ZMQError:
@@ -128,12 +127,8 @@ class InterfaceComponent(ABC):
                 context.term()
             time.sleep(1)  # add a sleep to give some time for the tool to connect
 
-        print("Connected to tool")
-
     def close_connection(self):
         self.socket.close()
-
-        # TODO: should we use self.context.term() as well?
 
     def execution_animation(self, process: subprocess):
         """Function creates an animation to give user feedback while process is running

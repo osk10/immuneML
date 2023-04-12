@@ -53,28 +53,30 @@ class TrainingPerformance(MLReport):
 
     @classmethod
     def build_object(cls, **kwargs):
-        location = "TrainingPerformance"        
+        location = "TrainingPerformance"
         valid_metrics = [m.name for m in Metric]
 
         name = kwargs["name"] if "name" in kwargs else None
         metrics = kwargs["metrics"] if "metrics" in kwargs else valid_metrics
         metrics = [m.upper() for m in metrics]
-        
+
         ParameterValidator.assert_all_in_valid_list(metrics, valid_metrics, location, 'metrics')
 
         return TrainingPerformance(set(metrics), name=name)
 
-    def __init__(self, metrics: set, train_dataset: Dataset = None, test_dataset: Dataset = None, method: MLMethod = None,
-                 result_path: Path = None, name: str = None, hp_setting: HPSetting = None, label=None, number_of_processes: int = 1):
+    def __init__(self, metrics: set, train_dataset: Dataset = None, test_dataset: Dataset = None,
+                 method: MLMethod = None,
+                 result_path: Path = None, name: str = None, hp_setting: HPSetting = None, label=None,
+                 number_of_processes: int = 1):
         super().__init__(train_dataset=train_dataset, test_dataset=test_dataset, method=method, result_path=result_path,
                          name=name, hp_setting=hp_setting, label=label, number_of_processes=number_of_processes)
         self.metrics_set = set(metrics)
 
     def _generate(self) -> ReportResult:
-        
+
         X = self.train_dataset.encoded_data
         predicted_y = self.method.predict(X, self.label)[self.label.name]
-        predicted_proba_y = self.method.predict_proba(X, self.label)[self.label.name]
+        predicted_proba_y = self.method.predict_proba(X, self.label)[self.label.name][self.label.positive_class]
         true_y = self.train_dataset.encoded_data.labels[self.label.name]
         classes = self.method.get_classes()
 
@@ -88,7 +90,7 @@ class TrainingPerformance(MLReport):
 
         for metric in self.metrics_set:
             _score = TrainingPerformance._compute_score(
-                Metric[metric],
+                Metric.get_metric(metric),
                 predicted_y,
                 predicted_proba_y,
                 true_y,
@@ -116,7 +118,8 @@ class TrainingPerformance(MLReport):
         else:
             fn = getattr(sklearn_metrics, metric.value)
 
-        if hasattr(true_y, 'dtype') and true_y.dtype.type is np.str_ or isinstance(true_y, list) and any(isinstance(item, str) for item in true_y):
+        if hasattr(true_y, 'dtype') and true_y.dtype.type is np.str_ or isinstance(true_y, list) and any(
+                isinstance(item, str) for item in true_y):
             true_y = label_binarize(true_y, classes=labels)
             predicted_y = label_binarize(predicted_y, classes=labels)
 
@@ -124,17 +127,19 @@ class TrainingPerformance(MLReport):
             if metric in Metric.get_probability_based_metric_types():
                 predictions = predicted_proba_y
                 if predicted_proba_y is None:
-                    warnings.warn(f"TrainingPerformance: metric {metric} is specified, but the chosen ML method does not output "
-                                  f"class probabilities. Using predicted classes instead...")
+                    warnings.warn(
+                        f"TrainingPerformance: metric {metric} is specified, but the chosen ML method does not output "
+                        f"class probabilities. Using predicted classes instead...")
                     predictions = predicted_y
             else:
                 predictions = predicted_y
-            
+
             score = fn(true_y, predictions)
 
         except ValueError as err:
             warnings.warn(f"TrainingPerformance: score for metric {metric.name} could not be calculated."
-                          f"\nPredicted values: {predicted_y}\nTrue values: {true_y}.\nMore details: {err}", RuntimeWarning)
+                          f"\nPredicted values: {predicted_y}\nTrue values: {true_y}.\nMore details: {err}",
+                          RuntimeWarning)
             score = Constants.NOT_COMPUTED
 
         return score
@@ -161,7 +166,7 @@ class TrainingPerformance(MLReport):
     def _generate_heatmap(self, x, y, z, metric, output, xlabel='Prediction', ylabel='Ground Truth', zlabel='Count'):
         path_csv = self.result_path / f"{self.name}_{metric.lower()}.csv"
         path_html = self.result_path / f"{self.name}_{metric.lower()}.html"
-        
+
         z_flip = np.flipud(z)
 
         hovertext = []
@@ -179,8 +184,8 @@ class TrainingPerformance(MLReport):
             z=z_flip,
             x=x,
             y=y,
-            hoverongaps = False,
-            colorscale = 'burgyl',
+            hoverongaps=False,
+            colorscale='burgyl',
             hoverinfo='text',
             text=hovertext
         )
@@ -189,12 +194,12 @@ class TrainingPerformance(MLReport):
 
         z_df = pd.DataFrame(z)
         z_df.columns = f'{xlabel} (' + pd.Index(map(str, x)) + ')'
-        z_df.index = f'{ylabel} (' +  pd.Index(map(str, y)) + ')'
-        z_df.to_csv(path_csv)   
-        
+        z_df.index = f'{ylabel} (' + pd.Index(map(str, y)) + ')'
+        z_df.to_csv(path_csv)
+
         output['tables'].append(ReportOutput(path_csv, f"TrainingPerformance table ({metric.lower()})"))
         output['figures'].append(ReportOutput(path_html, f"TrainingPerformance html ({metric.lower()})"))
-        
+
         return
 
     def check_prerequisites(self) -> bool:

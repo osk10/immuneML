@@ -38,15 +38,19 @@ rep1.tsv,TRA,1234e,no"""
                 )
 
     def test_import_repertoire_dataset(self):
-        path = EnvironmentSettings.root_path / "test/tmp/generic/"
+        path = EnvironmentSettings.tmp_test_path / "generic_io_repertoire"
         self.make_dummy_dataset(path, True)
 
         dataset = GenericImport.import_dataset({"is_repertoire": True, "result_path": path, "path": path,
-                                                "region_type": "IMGT_CDR3", "separator": "\t", "import_empty_aa_sequences": False,
+                                                "region_type": "IMGT_CDR3", "separator": "\t",
+                                                "import_empty_aa_sequences": False,
                                                 "import_empty_nt_sequences": True,
-                                                "column_mapping": {"CDR3B AA Sequence": "sequence_aas", "import_illegal_characters": False,
-                                                                   "TRBV Gene": "v_genes", "TRBJ Gene": "j_genes", "Counts": "counts"},
-                                                "metadata_file": path / "metadata.csv", "number_of_processes": 4}, "generic_dataset")
+                                                "column_mapping": {"CDR3B AA Sequence": "sequence_aas",
+                                                                   "import_illegal_characters": False,
+                                                                   "TRBV Gene": "v_genes", "TRBJ Gene": "j_genes",
+                                                                   "Counts": "counts"},
+                                                "metadata_file": path / "metadata.csv", "number_of_processes": 4},
+                                               "generic_dataset")
 
         self.assertEqual(1, dataset.get_example_count())
         for index, rep in enumerate(dataset.get_data()):
@@ -63,15 +67,17 @@ rep1.tsv,TRA,1234e,no"""
         shutil.rmtree(path)
 
     def test_import_sequence_dataset(self):
-        path = EnvironmentSettings.root_path / "test/tmp/generic/"
+        path = EnvironmentSettings.tmp_test_path / "generic_io_seq"
         self.make_dummy_dataset(path, False)
 
         dataset = GenericImport.import_dataset({"is_repertoire": False, "paired": False,
                                                 "result_path": path, "path": path, "import_illegal_characters": False,
-                                                "region_type": "IMGT_CDR3", "separator": "\t", "import_empty_nt_sequences": True,
+                                                "region_type": "IMGT_CDR3", "separator": "\t",
+                                                "import_empty_nt_sequences": True,
                                                 "column_mapping": {"CDR3B AA Sequence": "sequence_aas",
                                                                    "TRBV Gene": "v_genes", "TRBJ Gene": "j_genes"},
-                                                "metadata_file": path / "metadata.csv", "number_of_processes": 4}, "generic_dataset")
+                                                "metadata_file": path / "metadata.csv", "number_of_processes": 4},
+                                               "generic_dataset")
 
         self.assertEqual(15, dataset.get_example_count())
 

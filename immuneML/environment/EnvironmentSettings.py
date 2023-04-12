@@ -82,7 +82,3 @@ class EnvironmentSettings:
                 "EnvironmentSettings: the sequence alphabet cannot be obtained if sequence_type was not set properly. "
                 f"Expected AMINO_ACID or NUCLEOTIDE, but got {seq_type} instead.")
         return alphabet
-
-    @staticmethod
-    def set_tool_path(path: str):
-        EnvironmentSettings.tool_path = path

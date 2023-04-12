@@ -27,17 +27,25 @@ class MLExporter:
         encoder_filename = MLExporter._store_encoder(hp_item.hp_setting.encoder, path).name
 
         hp_item.method.store(path, hp_item.method.get_feature_names())
-        labels_with_values = {hp_item.method.get_label_name(): hp_item.method.get_classes()}
 
-        method_config = MLMethodConfiguration(labels_with_values=labels_with_values, software_used=hp_item.method.get_package_info(),
-                                              encoding_name=hp_item.hp_setting.encoder_name, encoding_parameters=hp_item.hp_setting.encoder_params,
-                                              encoding_file=encoder_filename, encoding_class=type(hp_item.hp_setting.encoder).__name__,
-                                              ml_method=type(hp_item.method).__name__, ml_method_name=hp_item.method.name,
-                                              train_dataset_id=hp_item.train_dataset.identifier, train_dataset_name=hp_item.train_dataset.name,
+        method_config = MLMethodConfiguration(label_name=hp_item.method.get_label_name(),
+                                              label_positive_class=hp_item.method.get_positive_class(),
+                                              label_values=hp_item.method.get_classes(),
+                                              software_used=hp_item.method.get_package_info(),
+                                              encoding_name=hp_item.hp_setting.encoder_name,
+                                              encoding_parameters=hp_item.hp_setting.encoder_params,
+                                              encoding_file=encoder_filename,
+                                              encoding_class=type(hp_item.hp_setting.encoder).__name__,
+                                              ml_method=type(hp_item.method).__name__,
+                                              ml_method_name=hp_item.method.name,
+                                              train_dataset_id=hp_item.train_dataset.identifier,
+                                              train_dataset_name=hp_item.train_dataset.name,
                                               preprocessing_sequence_name=hp_item.hp_setting.preproc_sequence_name,
                                               preprocessing_file=os.path.basename(preproc_filename),
-                                              preprocessing_parameters={type(seq).__name__: {str(key): str(val) for key, val in vars(seq).items()}
-                                                                        for seq in hp_item.hp_setting.preproc_sequence})
+                                              preprocessing_parameters={
+                                                  type(seq).__name__: {str(key): str(val) for key, val in
+                                                                       vars(seq).items()}
+                                                  for seq in hp_item.hp_setting.preproc_sequence})
 
         method_config.store(path / 'ml_config.yaml')
 
