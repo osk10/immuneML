@@ -2,7 +2,6 @@ import psutil
 
 from immuneML.tool_interface.ToolTable import ToolTable
 from immuneML.tool_interface.ToolType import ToolType
-from immuneML.tool_interface.interface_components.DatasetToolComponent import DatasetToolComponent
 from immuneML.tool_interface.interface_components.MLToolComponent import MLToolComponent
 from immuneML.tool_interface.interface_components.PreprocessingComponent import PreprocessingComponent
 
@@ -16,11 +15,10 @@ def get_tool_path(name: str):
 
 
 def create_component(tool_type: ToolType, name: str, specs: dict):
+    """ Creates a component depending on tool type specified, and adds it to the ToolTable
+    """
     if tool_type == ToolType.ML_TOOL:
         new_component = MLToolComponent(name, specs)
-        toolTable.add(name, new_component)
-    elif tool_type == ToolType.DATASET_TOOL:
-        new_component = DatasetToolComponent(name, specs)
         toolTable.add(name, new_component)
     elif tool_type == ToolType.PREPROCESSING_TOOL:
         new_component = PreprocessingComponent(name, specs)

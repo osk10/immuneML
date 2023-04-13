@@ -51,8 +51,10 @@ class ToolPreprocessor(Preprocessor, ABC):
         result = InterfaceController.run_func(params["tool_name"], "run_preprocessing",
                                               "batch1.tsv")  # batch1.tsv is a default name
 
-        # Finally, insert the dataset into a folder located inside immuneML that can be further used
+        # Insert the dataset into a folder located inside immuneML that can be further used - only used for showing the results
         ToolPreprocessor.insert_dataset_to_immuneML(result)
+
+        # TODO: the original dataset is returned. Should be the preprocessed dataset
 
         return processed_dataset
 
@@ -72,7 +74,7 @@ class ToolPreprocessor(Preprocessor, ABC):
 
     @staticmethod
     def insert_dataset_to_immuneML(file_path):
-        """ Receives a file path, creates a copy of the file and inserts it to generated_datasets folder
+        """ Receives a file path, creates a copy of the file and inserts it into generated_datasets folder
         """
         destination_folder = "../tool_interface/generated_datasets/"
 

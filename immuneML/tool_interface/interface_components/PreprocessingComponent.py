@@ -12,19 +12,17 @@ class PreprocessingComponent(InterfaceComponent):
         super().__init__(name, specs)
 
     def run_preprocessing(self, dataset_path):
+        """ Main function running external preprocessing
+        """
         print("Running preprocessing component")
 
         tool_args = self.create_json_params(self.specs)
-
         test = self.specs["params"]
-        # Add the dataset path
-        test["filename"] = dataset_path
+        test["filename"] = dataset_path  # Add the dataset path to the params list
 
-        self.socket.send_json(self.specs["params"])  # Send input to tool
-
+        # Send parameters to external preprocessor and wait for dataset path in return
+        self.socket.send_json(self.specs["params"])
         response = self.socket.recv_json()
-
-        print(f"Dataset received from program: {response}")
 
         dataset_path = response["dataset"]
 
