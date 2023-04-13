@@ -26,6 +26,7 @@ class PreprocessingComponent(InterfaceComponent):
 
         # Set dataset path to the response path retrieved by tool
         dataset_path = response["dataset"]
+        print("My dataset path is: ", dataset_path)
 
         return dataset_path
 

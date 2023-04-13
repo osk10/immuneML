@@ -7,7 +7,7 @@ from immuneML.IO.dataset_export.AIRRExporter import AIRRExporter
 from immuneML.preprocessing.Preprocessor import Preprocessor
 from immuneML.tool_interface import InterfaceController
 from immuneML.util.PathBuilder import PathBuilder
-
+from immuneML.IO.dataset_import.GenericImport import GenericImport
 
 class ToolPreprocessor(Preprocessor, ABC):
     """This preprocessor runs an external preprocessor
@@ -42,19 +42,19 @@ class ToolPreprocessor(Preprocessor, ABC):
         processed_dataset = dataset.clone()
 
         # Export the dataset to the folder on which the tool script is located
+        # TODO: Alternatively a path to the dataset could have been sent as a parameter to the tool
         tool_script_path = InterfaceController.get_tool_path(params["tool_name"])
         path = os.path.dirname(tool_script_path)
         path = PathBuilder.build(path)
-        AIRRExporter.export(dataset, path)
+        AIRRExporter.export(processed_dataset, path)
 
         # Start the tool handling the dataset. Returns a path to the dataset
-        result = InterfaceController.run_func(params["tool_name"], "run_preprocessing",
-                                              "batch1.tsv")  # batch1.tsv is a default name
+        # batch1.tsv is default name of exported file
+        result_path = InterfaceController.run_func(params["tool_name"], "run_preprocessing", "batch1.tsv")
 
-        # Insert the dataset into a folder located inside immuneML that can be further used - only used for showing the results
-        ToolPreprocessor.insert_dataset_to_immuneML(result)
-
-        # TODO: the original dataset is returned. Should be the preprocessed dataset
+        processed_dataset = ToolPreprocessor.run_generic_import(result_path, params["result_path"])
+        # Insert the dataset into a folder located inside immuneML to show the results of the preprocessing directly
+        ToolPreprocessor.insert_dataset_to_immuneML(result_path)
 
         return processed_dataset
 
@@ -72,10 +72,37 @@ class ToolPreprocessor(Preprocessor, ABC):
         """
         return True
 
+
+    @staticmethod
+    def run_generic_import(path, result_path):
+        """ Used for testing the import of the externally preprocessed dataset
+        TODO: this import will not include all the sections of the originally exported dataset. Neither will it
+            include new columns added.
+        """
+
+        column_mapping = {
+            "sequence_id": "sequence_identifiers",
+            "v_call": "v_alleles",
+            "j_call": "j_alleles",
+            "duplicate_count": "counts",
+            "cdr3_aa": "sequence_aas",
+        }
+
+        # Generic import used as AIRR import gives errors
+        dataset = GenericImport.import_dataset({"is_repertoire": False, "paired": False,
+                                                "result_path": result_path, "path": path, "import_illegal_characters": False,
+                                                "region_type": "FULL_SEQUENCE", "separator": "\t",
+                                                "import_empty_nt_sequences": True,
+                                                "column_mapping": column_mapping, "number_of_processes": 4},
+                                               "generic_dataset")
+        return dataset
+
     @staticmethod
     def insert_dataset_to_immuneML(file_path):
-        """ Receives a file path, creates a copy of the file and inserts it into generated_datasets folder
+        """ Receives a file path, creates a copy of the file and inserts it into external_preprocessed_dataset folder
+        This function is only used to show what the result of the preprocessing is. This is not shown when for instance
+        exporting.
         """
-        destination_folder = "../tool_interface/generated_datasets/"
+        destination_folder = "../tool_interface/external_preprocessed_dataset/"
 
         shutil.copy(file_path, destination_folder)
