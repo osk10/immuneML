@@ -2,31 +2,31 @@ from immuneML.tool_interface.interface_components.InterfaceComponent import Inte
 
 
 class PreprocessingComponent(InterfaceComponent):
-    """ Runs an external preprocessing program
-
-    The preprocessing component should return the path to the dataset(?)
-
+    """ Runs an external preprocessing tool
     """
 
     def __init__(self, name: str, specs: dict):
         super().__init__(name, specs)
 
     def run_preprocessing(self, dataset_path):
+        """ Main function running external preprocessing
+
+        Returns the path to the preprocessed dataset
+        """
         print("Running preprocessing component")
 
-        tool_args = self.create_json_params(self.specs)
+        # Get specified tool parameters
+        tool_args = self.specs["params"]
+        # Add the dataset path (to be preprocessed) to the params list
+        tool_args["filename"] = dataset_path
 
-        test = self.specs["params"]
-        # Add the dataset path
-        test["filename"] = dataset_path
-
-        self.socket.send_json(self.specs["params"])  # Send input to tool
-
+        # Send parameters to external preprocessor and wait for dataset path in return
+        self.socket.send_json(self.specs["params"])
         response = self.socket.recv_json()
 
-        print(f"Dataset received from program: {response}")
-
+        # Set dataset path to the response path retrieved by tool
         dataset_path = response["dataset"]
+        print("My dataset path is: ", dataset_path)
 
         return dataset_path
 
