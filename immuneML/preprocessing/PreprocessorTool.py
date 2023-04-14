@@ -1,6 +1,5 @@
 import os.path
 import shutil
-from abc import ABC
 from pathlib import Path
 
 from immuneML.IO.dataset_export.AIRRExporter import AIRRExporter
@@ -9,7 +8,7 @@ from immuneML.tool_interface import InterfaceController
 from immuneML.util.PathBuilder import PathBuilder
 
 
-class ToolPreprocessor(Preprocessor, ABC):
+class PreprocessorTool(Preprocessor):
     """This preprocessor runs an external preprocessor
 
     YAML specification:
@@ -19,21 +18,19 @@ class ToolPreprocessor(Preprocessor, ABC):
 
         preprocessing_sequences:
             my_preprocessing:
-                - my_filter:
-                    ToolPreprocessor:
-                        tool_name: my_preprocessing_tool
+                - my_filter: PreprocessorTool
     """
 
-    def __init__(self, tool_name: str, result_path: Path = None):
+    def __init__(self, name: str = None, result_path: Path = None):
         super().__init__(result_path)
-        self.tool_name = tool_name
+        self.name = name
 
     def process_dataset(self, dataset, result_path):
         """ Prepares parameters and calls process(dataset, params) internally
         """
 
-        params = {"result_path": result_path, "tool_name": self.tool_name}
-        return ToolPreprocessor.process(dataset, params)
+        params = {"result_path": result_path, "tool_name": self.name}
+        return PreprocessorTool.process(dataset, params)
 
     @staticmethod
     def process(dataset, params: dict):
@@ -52,7 +49,7 @@ class ToolPreprocessor(Preprocessor, ABC):
                                               "batch1.tsv")  # batch1.tsv is a default name
 
         # Finally, insert the dataset into a folder located inside immuneML that can be further used
-        ToolPreprocessor.insert_dataset_to_immuneML(result)
+        PreprocessorTool.insert_dataset_to_immuneML(result)
 
         return processed_dataset
 
