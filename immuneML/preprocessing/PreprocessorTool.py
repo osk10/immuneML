@@ -1,15 +1,15 @@
 import os.path
 import shutil
-from abc import ABC
 from pathlib import Path
 
 from immuneML.IO.dataset_export.AIRRExporter import AIRRExporter
+from immuneML.IO.dataset_import.GenericImport import GenericImport
 from immuneML.preprocessing.Preprocessor import Preprocessor
 from immuneML.tool_interface import InterfaceController
 from immuneML.util.PathBuilder import PathBuilder
-from immuneML.IO.dataset_import.GenericImport import GenericImport
 
-class ToolPreprocessor(Preprocessor, ABC):
+
+class PreprocessorTool(Preprocessor):
     """This preprocessor runs an external preprocessor
 
     YAML specification:
@@ -19,21 +19,19 @@ class ToolPreprocessor(Preprocessor, ABC):
 
         preprocessing_sequences:
             my_preprocessing:
-                - my_filter:
-                    ToolPreprocessor:
-                        tool_name: my_preprocessing_tool
+                - my_filter: PreprocessorTool
     """
 
-    def __init__(self, tool_name: str, result_path: Path = None):
+    def __init__(self, name: str, result_path: Path = None):
         super().__init__(result_path)
-        self.tool_name = tool_name
+        self.name = name
 
     def process_dataset(self, dataset, result_path):
         """ Prepares parameters and calls process(dataset, params) internally
         """
 
-        params = {"result_path": result_path, "tool_name": self.tool_name}
-        return ToolPreprocessor.process(dataset, params)
+        params = {"result_path": result_path, "tool_name": self.name}
+        return PreprocessorTool.process(dataset, params)
 
     @staticmethod
     def process(dataset, params: dict):
@@ -52,9 +50,9 @@ class ToolPreprocessor(Preprocessor, ABC):
         # batch1.tsv is default name of exported file
         result_path = InterfaceController.run_func(params["tool_name"], "run_preprocessing", "batch1.tsv")
 
-        processed_dataset = ToolPreprocessor.run_generic_import(result_path, params["result_path"])
+        processed_dataset = PreprocessorTool.run_generic_import(result_path, params["result_path"])
         # Insert the dataset into a folder located inside immuneML to show the results of the preprocessing directly
-        ToolPreprocessor.insert_dataset_to_immuneML(result_path)
+        PreprocessorTool.insert_dataset_to_immuneML(result_path)
 
         return processed_dataset
 
@@ -71,7 +69,6 @@ class ToolPreprocessor(Preprocessor, ABC):
         number of examples in the dataset
         """
         return True
-
 
     @staticmethod
     def run_generic_import(path, result_path):
@@ -90,7 +87,8 @@ class ToolPreprocessor(Preprocessor, ABC):
 
         # Generic import used as AIRR import gives errors
         dataset = GenericImport.import_dataset({"is_repertoire": False, "paired": False,
-                                                "result_path": result_path, "path": path, "import_illegal_characters": False,
+                                                "result_path": result_path, "path": path,
+                                                "import_illegal_characters": False,
                                                 "region_type": "FULL_SEQUENCE", "separator": "\t",
                                                 "import_empty_nt_sequences": True,
                                                 "column_mapping": column_mapping, "number_of_processes": 4},
