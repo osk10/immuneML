@@ -8,13 +8,9 @@ definitions:
           14: 0.8 # 80% of all generated sequences for all sequences will have length 14
           15: 0.2 # 20% of all generated sequences across all sequences will have length 15
 
-  preprocessing_sequences: # ------- Added preprocessing -------
-    my_preprocessing_seq: # User-defined name of the preprocessing sequence (may contain one or more preprocessings)
-      - my_new_filter:                # User-defined name of one preprocessing TODO: see if I can use the name of the preprocessing tool
-    # - my_preprocessing_tool: ToolPreprocessor
-          ToolPreprocessor: # The name of the new preprocessor class
-            tool_name: my_preprocessing_tool # Used to reference the tool sent
-            # The ONLY parameter ToolProcessor should take is the tool name that it connects with
+  preprocessing_sequences:
+    my_preprocessing_seq:
+    - my_preprocessing_tool: PreprocessorTool
 
   reports:
     simple_overview: SimpleDatasetOverview
@@ -32,8 +28,8 @@ instructions:
 # Added tool part here
 tools:
   my_preprocessing_tool:
-    type: PreprocessingTool
-    path: "/Users/jorgenskimmeland/Documents/aar5/Master/Absolut/Absolut-main/src/immuneML_interface/AbsolutNoLib" # Tool path. This is needed to find the file that immuneML will communicate with
+    type: PreprocessorTool
+    path: "/Users/jorgenskimmeland/Documents/aar5/Master/Absolut/Absolut-main/src/immuneML_interface/AbsolutNoLib"
     params: # Specify the parameters that the preprocessor tool needs. Defined by the tool developers
       option: "repertoire"
       antigen: "1FBI"

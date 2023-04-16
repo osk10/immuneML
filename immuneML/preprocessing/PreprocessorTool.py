@@ -74,7 +74,7 @@ class PreprocessorTool(Preprocessor):
     def run_generic_import(path, result_path):
         """ Used for testing the import of the externally preprocessed dataset
         TODO: this import will not include all the sections of the originally exported dataset. Neither will it
-            include new columns added.
+            include new columns added. This is because there is no mapping implemented to certain columns
         """
 
         column_mapping = {

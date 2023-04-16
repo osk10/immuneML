@@ -20,7 +20,7 @@ def create_component(tool_type: ToolType, name: str, specs: dict):
     if tool_type == ToolType.ML_TOOL:
         new_component = MLToolComponent(name, specs)
         toolTable.add(name, new_component)
-    elif tool_type == ToolType.PREPROCESSING_TOOL:
+    elif tool_type == ToolType.PREPROCESSOR_TOOL:
         new_component = PreprocessingComponent(name, specs)
         toolTable.add(name, new_component)
 

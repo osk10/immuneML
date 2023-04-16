@@ -78,7 +78,7 @@ instructions:
 
 tools:
   my_preprocessing_tool:
-    type: PreprocessingTool
+    type: PreprocessorTool
     path: path/to/tool/script # Tool path. This is needed to find the file that immuneML will communicate with
     params: # Specify the parameters that the preprocessor tool needs. Defined by the tool developers
       param_name1: value
