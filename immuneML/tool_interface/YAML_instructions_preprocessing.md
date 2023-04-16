@@ -1,4 +1,4 @@
-# YAML - Task A
+# YAML - Documentation
 **For more in depth documentation:**
 * https://docs.immuneml.uio.no/latest/specification.html?highlight=datasetexport#datasetexport
 * https://docs.immuneml.uio.no/latest/tutorials/how_to_generate_a_random_repertoire_dataset.html?highlight=randomsequencedataset
@@ -45,7 +45,8 @@ tools: # optional keyword - present if tools are used
 ## Full example of YAML-specification running preprocessing
 
 YAML-file example with the use of a PreprocessorTool. This example shows how a user can create 
-a RandomSequenceDataset, specify a preprocessor and define the instruction DatasetExport. 
+a RandomSequenceDataset, specify a preprocessor and define the instruction DatasetExport using the 
+preprocessor. 
 
 ```yaml
 definitions:
@@ -60,7 +61,7 @@ definitions:
 
   preprocessing_sequences: 
     my_preprocessing_seq: # User-defined name of the preprocessing sequence (may contain one or more preprocessings)
-      - my_preprocessing_tool: ToolPreprocessor
+      - my_preprocessing_tool: ToolPreprocessor # Name of preprocessor and its type 
 
   reports:
     simple_overview: SimpleDatasetOverview
@@ -77,9 +78,9 @@ instructions:
 
 tools:
   my_preprocessing_tool: # User defined tool name 
-    type: PreprocessorTool # Type of tool 
-    path: path/to/tool/script # Path to a file located in tool that immuneML communicates with
+    type: PreprocessorTool # Type of the tool
+    path: path/to/tool/script # Path to file used to connect with immuneML
     params: # Optional parameters. Parameters are defined by the tools
-      param_name1: value 
+      param_name1: value # example of how a parameter is defined 
 
 ```
