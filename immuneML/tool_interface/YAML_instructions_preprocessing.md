@@ -45,8 +45,7 @@ tools: # optional keyword - present if tools are used
 ## Full example of YAML-specification running preprocessing
 
 YAML-file example with the use of a PreprocessorTool. This example shows how a user can create 
-a RandomSequenceDataset, specify a preprocessor and define the instruction DatasetExport using the 
-preprocessor. 
+a dataset, using a preprocessor through an external tool and export the dataset. 
 
 ```yaml
 definitions:
