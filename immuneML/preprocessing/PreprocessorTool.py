@@ -18,8 +18,8 @@ class PreprocessorTool(Preprocessor):
     .. code-block:: yaml
 
         preprocessing_sequences:
-            my_preprocessing:
-                - my_filter: PreprocessorTool
+            my_preprocessing_seq:
+                - my_preprocessing_tool: PreprocessorTool
     """
 
     def __init__(self, name: str, result_path: Path = None):
@@ -101,6 +101,12 @@ class PreprocessorTool(Preprocessor):
         This function is only used to show what the result of the preprocessing is. This is not shown when for instance
         exporting.
         """
-        destination_folder = "../tool_interface/external_preprocessed_dataset/"
+
+        # Get the absolute path of this file
+        script_path = os.path.abspath(os.path.dirname(__file__))
+
+        # Construct the path to the external preprocessed dataset folder
+        destination_folder = os.path.abspath(
+            os.path.join(script_path, '..', 'tool_interface', 'external_preprocessed_dataset'))
 
         shutil.copy(file_path, destination_folder)
