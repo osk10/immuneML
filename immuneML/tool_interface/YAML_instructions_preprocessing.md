@@ -60,7 +60,7 @@ definitions:
 
   preprocessing_sequences: 
     my_preprocessing_seq: # User-defined name of the preprocessing sequence (may contain one or more preprocessings)
-      - my_preprocessing_tool: ToolPreprocessor # Name of preprocessor and its type 
+    - my_preprocessing_tool: PreprocessorTool # Name of preprocessor and its type 
 
   reports:
     simple_overview: SimpleDatasetOverview
