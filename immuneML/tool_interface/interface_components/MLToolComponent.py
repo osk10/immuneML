@@ -9,7 +9,7 @@ class MLToolComponent(InterfaceComponent):
         super().__init__(name, specs)
 
     def _prepare_data(self, encoded_data):
-        if self.interpreter == "python":
+        if self.interpreter != "python":
             pickle_data = pickle.dumps(encoded_data)
             return pickle_data
         else:
@@ -22,7 +22,7 @@ class MLToolComponent(InterfaceComponent):
 
     def run_fit(self, encoded_data):
         data = self._prepare_data(encoded_data)
-        if self.interpreter == "python":
+        if self.interpreter != "python":
             self.socket.send_pyobj(data)
             res = json.loads(self.socket.recv_json())
 

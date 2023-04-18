@@ -75,6 +75,8 @@ class DeepRCEncoder(DatasetEncoder):
         metadata_filepath = output_folder / f"{dataset.identifier}_metadata.{DeepRCEncoder.EXTENSION}"
         metadata = dataset.get_metadata(labels, return_df=True)
         metadata[DeepRCEncoder.ID_COLUMN] = dataset.get_repertoire_ids()
+        metadata[DeepRCEncoder.ID_COLUMN] = metadata[DeepRCEncoder.ID_COLUMN] + ".tsv"
+
 
         metadata.to_csv(path_or_buf=metadata_filepath, sep="\t", index=False)
 

@@ -59,8 +59,9 @@ class MLMethodTool(MLMethod):
 
     def get_compatible_encoders(self):
         from immuneML.encodings.kmer_frequency.KmerFrequencyEncoder import KmerFrequencyEncoder
+        from immuneML.encodings.deeprc.DeepRCEncoder import DeepRCEncoder
 
-        return [KmerFrequencyEncoder]
+        return [KmerFrequencyEncoder, DeepRCEncoder]
 
     def get_positive_class(self):
         return True
