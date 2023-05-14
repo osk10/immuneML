@@ -11,7 +11,7 @@ from immuneML.dsl.semantic_model.SemanticModel import SemanticModel
 from immuneML.dsl.symbol_table.SymbolType import SymbolType
 from immuneML.environment.Constants import Constants
 from immuneML.environment.EnvironmentSettings import EnvironmentSettings
-from immuneML.tool_interface import InterfaceController
+from immuneML.tool_interface.InterfaceController import InterfaceController
 from immuneML.util.Logger import print_log
 from immuneML.util.PathBuilder import PathBuilder
 from immuneML.util.ReflectionHandler import ReflectionHandler

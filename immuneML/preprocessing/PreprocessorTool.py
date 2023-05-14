@@ -5,7 +5,7 @@ from pathlib import Path
 from immuneML.IO.dataset_export.AIRRExporter import AIRRExporter
 from immuneML.IO.dataset_import.GenericImport import GenericImport
 from immuneML.preprocessing.Preprocessor import Preprocessor
-from immuneML.tool_interface import InterfaceController
+from immuneML.tool_interface.InterfaceController import InterfaceController
 from immuneML.util.PathBuilder import PathBuilder
 
 
