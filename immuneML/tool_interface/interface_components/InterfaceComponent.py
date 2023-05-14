@@ -50,6 +50,17 @@ class InterfaceComponent(ABC):
         else:
             return ""
 
+    def add_value_to_json_string(self, json_str, key, value) -> str:
+        """ Adds a new key, value pair to a string with json format
+
+        Returns the new string
+        """
+        dictionary = json.loads(json_str)
+
+        dictionary[key] = value
+
+        return json.dumps(dictionary)
+
     def set_port(self, start_port: int = 5000, end_port: int = 8000):
         """ Finds an available port on the computer to send to subprocess
         """
@@ -60,8 +71,7 @@ class InterfaceComponent(ABC):
                     self.port = str(port)
                     break
                 except OSError as e:
-                    # TODO: må denne printes ut eller kan vi bare passe her?
-                    print(f"Error: {e}")
+                    pass
 
     def start_subprocess(self):
         print_log(f"Starting tool named {self.name}...", include_datetime=True)
@@ -77,7 +87,6 @@ class InterfaceComponent(ABC):
 
         self.process = subprocess.Popen(subprocess_args, stdin=subprocess.PIPE, cwd=working_dir)
 
-        # TODO: skal dette være med?
         # Wait for process to start
         while self.process is None:
             pass

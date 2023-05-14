@@ -37,7 +37,7 @@ class ToolParser:
         ParameterValidator.assert_type_and_value(tool_item["path"], Path, ToolParser.__name__, "path")
 
         # check that the value of type is valid
-        valid_types = ["MLMethodTool"]
+        valid_types = ["MLMethodTool", "PreprocessorTool"]
         ParameterValidator.assert_in_valid_list(tool_item["type"], valid_types, "ToolParser", "type")
         tool_specification = {**tool_item}
 
@@ -55,6 +55,8 @@ class ToolParser:
 
         if type_str == "MLMethodTool":
             return ToolType.ML_TOOL
+        elif type_str == "PreprocessorTool":
+            return ToolType.PREPROCESSOR_TOOL
         else:
             raise KeyError("Could not identify tool type. YAML file requires 'type' to be defined")
 
