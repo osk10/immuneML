@@ -22,6 +22,7 @@ class MLToolComponent(InterfaceComponent):
 
     def run_fit(self, encoded_data):
         data = self._prepare_data(encoded_data)
+        """
         if self.interpreter != "python":
             self.socket.send_pyobj(data)
             res = json.loads(self.socket.recv_json())
@@ -38,10 +39,11 @@ class MLToolComponent(InterfaceComponent):
             if result["data_received"] is True:
                 # print("Tool received data")
                 pass
-
+        """
         # run function in tool
         x = {
-            'fit': 1,
+            'fit':                {"metadata_filepath": encoded_data.info["metadata_filepath"],
+                "dataset_filepath": encoded_data.info["dataset_filepath"]+"\\encoding"},
         }
         self.socket.send_json(json.dumps(x))
 

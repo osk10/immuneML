@@ -89,13 +89,14 @@ class DeepRCEncoder(DatasetEncoder):
         self.export_repertoire_tsv_files(result_path)
 
         labels = params.label_config.get_labels_by_name()
-        metadata_filepath = self.export_metadata_file(dataset, labels, result_path)
+        metadata_filepath = self.export_metadata_file(dataset, labels, result_path.parent)
 
         encoded_dataset = dataset.clone()
         encoded_dataset.encoded_data = EncodedData(examples=None, labels=dataset.get_metadata(labels) if params.encode_labels else None,
                                                    example_ids=dataset.repertoire_ids,
                                                    encoding=DeepRCEncoder.__name__,
-                                                   info={"metadata_filepath": metadata_filepath,
+                                                   info={"metadata_filepath": str(metadata_filepath.resolve()),
+                                                         "dataset_filepath": str(params.result_path.resolve()),
                                                          "max_sequence_length": self.max_sequence_length})
 
         return encoded_dataset
