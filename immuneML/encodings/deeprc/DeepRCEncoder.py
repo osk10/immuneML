@@ -1,4 +1,3 @@
-
 from pathlib import Path
 
 import pandas as pd
@@ -63,7 +62,8 @@ class DeepRCEncoder(DatasetEncoder):
             filepath = output_folder / f"{repertoire.identifier}.{DeepRCEncoder.EXTENSION}"
 
             if not filepath.is_file():
-                df = pd.DataFrame({DeepRCEncoder.SEQUENCE_COLUMN: repertoire.get_sequence_aas(), DeepRCEncoder.COUNTS_COLUMN: repertoire.get_counts()})
+                df = pd.DataFrame({DeepRCEncoder.SEQUENCE_COLUMN: repertoire.get_sequence_aas(),
+                                   DeepRCEncoder.COUNTS_COLUMN: repertoire.get_counts()})
                 df[DeepRCEncoder.COUNTS_COLUMN].fillna(1, inplace=True)
 
                 df.to_csv(path_or_buf=filepath, sep=DeepRCEncoder.SEP, index=False)
@@ -76,7 +76,6 @@ class DeepRCEncoder(DatasetEncoder):
         metadata = dataset.get_metadata(labels, return_df=True)
         metadata[DeepRCEncoder.ID_COLUMN] = dataset.get_repertoire_ids()
         metadata[DeepRCEncoder.ID_COLUMN] = metadata[DeepRCEncoder.ID_COLUMN] + ".tsv"
-
 
         metadata.to_csv(path_or_buf=metadata_filepath, sep="\t", index=False)
 
@@ -92,13 +91,13 @@ class DeepRCEncoder(DatasetEncoder):
         metadata_filepath = self.export_metadata_file(dataset, labels, result_path.parent)
 
         encoded_dataset = dataset.clone()
-        encoded_dataset.encoded_data = EncodedData(examples=None, labels=dataset.get_metadata(labels) if params.encode_labels else None,
+        encoded_dataset.encoded_data = EncodedData(examples=None, labels=dataset.get_metadata(
+            labels) if params.encode_labels else None,
                                                    example_ids=dataset.repertoire_ids,
                                                    encoding=DeepRCEncoder.__name__,
                                                    info={"metadata_filepath": str(metadata_filepath.resolve()),
-                                                         "dataset_filepath": str(params.result_path.resolve()),
+                                                         "dataset_filepath": str(result_path.resolve()),
                                                          "max_sequence_length": self.max_sequence_length})
-
         return encoded_dataset
 
     @staticmethod
