@@ -2,7 +2,7 @@ from pathlib import Path
 
 from immuneML.dsl.symbol_table.SymbolTable import SymbolTable
 from immuneML.dsl.symbol_table.SymbolType import SymbolType
-from immuneML.tool_interface import InterfaceController
+from immuneML.tool_interface.InterfaceController import InterfaceController
 from immuneML.tool_interface.ToolType import ToolType
 from immuneML.util.ParameterValidator import ParameterValidator
 
