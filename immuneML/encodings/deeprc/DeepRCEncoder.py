@@ -55,9 +55,9 @@ class DeepRCEncoder(DatasetEncoder):
         else:
             raise ValueError("DeepRCEncoder is not defined for dataset types which are not RepertoireDataset.")
 
-    def export_repertoire_tsv_files(self, output_folder: Path):
-        repertoires = self.context["dataset"].repertoires
-
+    def export_repertoire_tsv_files(self, output_folder: Path, dataset):
+        # repertoires = self.context["dataset"].repertoires
+        repertoires = dataset.repertoires
         for repertoire in repertoires:
             filepath = output_folder / f"{repertoire.identifier}.{DeepRCEncoder.EXTENSION}"
 
@@ -85,7 +85,7 @@ class DeepRCEncoder(DatasetEncoder):
         result_path = params.result_path / "encoding"
         PathBuilder.build(result_path)
 
-        self.export_repertoire_tsv_files(result_path)
+        self.export_repertoire_tsv_files(result_path, dataset)
 
         labels = params.label_config.get_labels_by_name()
         metadata_filepath = self.export_metadata_file(dataset, labels, result_path.parent)
